@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/email";
 
 const schema = z.object({ email: z.string().email() });
 
@@ -17,6 +18,12 @@ export async function POST(request: NextRequest) {
     update: {},
     create: { email: parsed.data.email },
   });
+
+  try {
+    await sendWelcomeEmail(parsed.data.email);
+  } catch (error) {
+    console.error("Échec de l'envoi de l'email de bienvenue", error);
+  }
 
   return NextResponse.json({ ok: true });
 }

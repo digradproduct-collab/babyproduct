@@ -1,4 +1,5 @@
 import { CATEGORY_LABELS, PLATFORM_LABELS } from "@/lib/labels";
+import { ImageField } from "@/components/admin/ImageField";
 import type { Category, Product, SourcePlatform } from "@/generated/prisma/client";
 
 const CATEGORY_OPTIONS = Object.keys(CATEGORY_LABELS) as Category[];
@@ -64,14 +65,7 @@ export function ProductForm({
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-        URL de l&apos;image
-        <input
-          name="imageUrl"
-          defaultValue={product?.imageUrl ?? ""}
-          className="rounded-lg border border-cream-500 bg-white px-3 py-2"
-        />
-      </label>
+      <ImageField currentImageUrl={product?.imageUrl} />
 
       <label className="flex flex-col gap-1 text-sm">
         Lien de la source (réseau social)

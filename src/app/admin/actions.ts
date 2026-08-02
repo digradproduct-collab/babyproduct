@@ -7,6 +7,8 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { slugify } from "@/lib/slug";
 import { scoreRawSource as runLlmScoring } from "@/lib/scoring";
+import { uploadProductImage } from "@/lib/supabase";
+import { sendWeeklyDigest } from "@/lib/email";
 import type { Category, ProductStatus, SourcePlatform } from "@/generated/prisma/client";
 
 async function requireAdmin() {
@@ -41,6 +43,19 @@ function marginPct(priceCents: number | null, costCents: number | null) {
   return Math.round(((priceCents - costCents) / priceCents) * 1000) / 10;
 }
 
+/** Si une photo a été envoyée, l'upload vers Supabase Storage et retourne son URL publique. */
+async function resolveImageUrl(
+  formData: FormData,
+  slugHint: string,
+  fallbackUrl: string | undefined,
+): Promise<string | null> {
+  const file = formData.get("imageFile");
+  if (file instanceof File && file.size > 0) {
+    return uploadProductImage(file, slugHint);
+  }
+  return fallbackUrl || null;
+}
+
 export async function createProduct(formData: FormData) {
   await requireAdmin();
 
@@ -56,13 +71,15 @@ export async function createProduct(formData: FormData) {
     slug = `${baseSlug}-${attempt}`;
   }
 
+  const imageUrl = await resolveImageUrl(formData, slug, raw.imageUrl);
+
   const product = await db.product.create({
     data: {
       name: raw.name,
       slug,
       category: raw.category as Category,
       description: raw.description || null,
-      imageUrl: raw.imageUrl || null,
+      imageUrl,
       sourceUrl: raw.sourceUrl || null,
       sourcePlatform: (raw.sourcePlatform as SourcePlatform) || null,
       supplierName: raw.supplierName || null,
@@ -87,6 +104,7 @@ export async function updateProduct(id: string, formData: FormData) {
   const raw = productSchema.parse(Object.fromEntries(formData));
   const priceCents = toCents(raw.estimatedPrice);
   const costCents = toCents(raw.estimatedCost);
+  const imageUrl = await resolveImageUrl(formData, id, raw.imageUrl);
 
   await db.product.update({
     where: { id },
@@ -94,7 +112,7 @@ export async function updateProduct(id: string, formData: FormData) {
       name: raw.name,
       category: raw.category as Category,
       description: raw.description || null,
-      imageUrl: raw.imageUrl || null,
+      imageUrl,
       sourceUrl: raw.sourceUrl || null,
       sourcePlatform: (raw.sourcePlatform as SourcePlatform) || null,
       supplierName: raw.supplierName || null,
@@ -249,4 +267,20 @@ export async function analyzeRawSource(id: string) {
   revalidatePath("/admin/sources");
   revalidatePath("/admin");
   redirect(`/admin/produits/${product.id}`);
+}
+
+export async function sendWeeklyDigestNow() {
+  await requireAdmin();
+
+  try {
+    const result = await sendWeeklyDigest();
+    if (result.skipped) {
+      redirect(`/admin/analytics?newsletterError=${encodeURIComponent(result.skipped)}`);
+    }
+    redirect(`/admin/analytics?newsletterSent=${result.sent}`);
+  } catch (error) {
+    if (error && typeof error === "object" && "digest" in error) throw error; // redirect() interne
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
+    redirect(`/admin/analytics?newsletterError=${encodeURIComponent(message)}`);
+  }
 }

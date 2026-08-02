@@ -40,9 +40,11 @@ cp .env.example .env
 | `AUTH_SECRET` | Secret Auth.js — générez avec `openssl rand -base64 32` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Identifiants du premier compte admin (utilisés par `npm run db:seed`) |
 | `ANTHROPIC_API_KEY` | Clé API Anthropic, pour le scoring IA des candidats produits |
-| `CRON_SECRET` | Jeton attendu en `Authorization: Bearer <CRON_SECRET>` par le job planifié |
+| `CRON_SECRET` | Jeton attendu en `Authorization: Bearer <CRON_SECRET>` par les jobs planifiés |
 | `NEXT_PUBLIC_SHOW_PIPELINE` | `true` pour exposer une page publique `/pipeline` en lecture seule (transparence) |
 | `NEXT_PUBLIC_SITE_URL` | URL publique du site |
+| `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Pour l'upload des photos produits (voir ci-dessous) |
+| `RESEND_API_KEY` / `RESEND_FROM_EMAIL` | Pour l'envoi d'emails (voir ci-dessous) |
 
 ### 3. Base de données
 
@@ -93,6 +95,41 @@ Exemple `curl` :
 
 ```bash
 curl -X POST https://votre-domaine.fr/api/cron/scan-candidates \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
+## Photos produits
+
+Le formulaire produit (`/admin/produits/[id]`) permet d'uploader directement une photo, stockée
+dans Supabase Storage :
+
+1. Sur votre projet Supabase → **Storage** → **New bucket** → nom `product-images` →
+   activez **Public bucket**.
+2. Récupérez `SUPABASE_URL` (Project Settings → API → Project URL) et la clé **service_role**
+   (Project Settings → API → service_role — secrète, jamais côté client) et ajoutez-les aux
+   variables d'environnement.
+
+Sans photo uploadée, le champ « URL externe » reste disponible en repli.
+
+## Newsletter (envoi d'emails)
+
+Les emails sont envoyés via [Resend](https://resend.com) :
+
+1. Créez un compte Resend, récupérez une clé API (**API Keys**) et renseignez `RESEND_API_KEY`.
+2. Par défaut, les emails partent de `onboarding@resend.dev` (fonctionne sans configuration
+   mais moins délivrable). Pour un vrai nom de domaine, vérifiez votre domaine dans Resend puis
+   réglez `RESEND_FROM_EMAIL="Câlin Kids <newsletter@votredomaine.fr>"`.
+
+Sans `RESEND_API_KEY`, les emails sont silencieusement ignorés (les inscriptions restent
+enregistrées en base).
+
+- **Email de bienvenue** : envoyé automatiquement à l'inscription.
+- **Top 5 hebdomadaire** : déclenché manuellement depuis `/admin/analytics` (bouton
+  « Envoyer le Top 5 maintenant »), ou automatiquement via un cron externe hebdomadaire sur
+  `POST /api/cron/send-newsletter` (même jeton `CRON_SECRET` que le scan IA) :
+
+```bash
+curl -X POST https://votre-domaine.fr/api/cron/send-newsletter \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
 

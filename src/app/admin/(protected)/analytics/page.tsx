@@ -1,8 +1,15 @@
 import { db } from "@/lib/db";
 import { CATEGORY_LABELS } from "@/lib/labels";
+import { sendWeeklyDigestNow } from "@/app/admin/actions";
 
-export default async function AnalyticsPage() {
-  const [totalViews, totalClicks, topProducts, topPages] = await Promise.all([
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ newsletterSent?: string; newsletterError?: string }>;
+}) {
+  const { newsletterSent, newsletterError } = await searchParams;
+
+  const [totalViews, totalClicks, topProducts, topPages, subscriberCount] = await Promise.all([
     db.pageView.count(),
     db.click.count(),
     db.product.findMany({
@@ -17,6 +24,7 @@ export default async function AnalyticsPage() {
       orderBy: { _count: { path: "desc" } },
       take: 10,
     }),
+    db.newsletterSubscriber.count(),
   ]);
 
   const conversionRate = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0";
@@ -27,6 +35,29 @@ export default async function AnalyticsPage() {
       <p className="mt-1 text-ink-soft">
         Vues de page et clics affiliés, pour prioriser les produits à pousser sur les réseaux.
       </p>
+
+      {newsletterSent && (
+        <p className="mt-4 rounded-xl bg-sage-200 px-4 py-3 text-sm text-sage-800">
+          Newsletter envoyée à {newsletterSent} abonné(s).
+        </p>
+      )}
+      {newsletterError && (
+        <p className="mt-4 rounded-xl bg-berry-400/20 px-4 py-3 text-sm text-berry-700">
+          Newsletter non envoyée : {newsletterError}
+        </p>
+      )}
+
+      <section className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-cream-100 p-5">
+        <div>
+          <p className="text-xs font-semibold uppercase text-ink-soft">Newsletter</p>
+          <p className="mt-1 font-display text-2xl text-ink">{subscriberCount} abonné(s)</p>
+        </div>
+        <form action={sendWeeklyDigestNow}>
+          <button className="rounded-full bg-terracotta-600 px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta-700">
+            Envoyer le Top 5 maintenant
+          </button>
+        </form>
+      </section>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl bg-cream-100 p-5">
