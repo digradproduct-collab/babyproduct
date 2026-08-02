@@ -13,8 +13,14 @@ const figtree = Figtree({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Câlin Kids — Les meilleurs produits bébé & enfants du moment",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Câlin Kids — Les meilleurs produits bébé & enfants du moment",
+    template: "%s",
+  },
   description:
     "Câlin Kids repère et sélectionne les produits bébé & enfants les plus appréciés du moment, classés par catégorie.",
 };
