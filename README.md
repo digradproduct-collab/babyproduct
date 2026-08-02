@@ -47,8 +47,9 @@ cp .env.example .env
 ### 3. Base de données
 
 ```bash
-npx prisma migrate dev --name init   # crée les tables
+npx prisma migrate dev               # crée les tables
 npm run db:seed                      # crée le premier compte admin (ADMIN_EMAIL / ADMIN_PASSWORD)
+npx tsx prisma/seed-demo.ts          # optionnel : quelques produits de démo pour tester le site
 ```
 
 ### 4. Lancer le site
