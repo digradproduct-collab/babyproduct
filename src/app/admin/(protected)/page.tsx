@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { seedDemoProducts } from "@/app/admin/actions";
 import { CATEGORY_LABELS, STATUS_COLORS, STATUS_LABELS } from "@/lib/labels";
 import type { Category, ProductStatus } from "@/generated/prisma/client";
 
@@ -14,27 +15,32 @@ const SORT_OPTIONS = [
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; category?: string; sort?: string }>;
+  searchParams: Promise<{
+    status?: string;
+    category?: string;
+    sort?: string;
+    demoSeeded?: string;
+  }>;
 }) {
-  const { status, category, sort } = await searchParams;
+  const { status, category, sort, demoSeeded } = await searchParams;
 
-  const products = await db.product.findMany({
-    where: {
-      status: status ? (status as ProductStatus) : undefined,
-      category: category ? (category as Category) : undefined,
-    },
-    orderBy:
-      sort === "score"
-        ? { viralScore: "desc" }
-        : sort === "margin"
-          ? { estimatedMarginPct: "desc" }
-          : { createdAt: "desc" },
-  });
+  const [products, totalCount, counts] = await Promise.all([
+    db.product.findMany({
+      where: {
+        status: status ? (status as ProductStatus) : undefined,
+        category: category ? (category as Category) : undefined,
+      },
+      orderBy:
+        sort === "score"
+          ? { viralScore: "desc" }
+          : sort === "margin"
+            ? { estimatedMarginPct: "desc" }
+            : { createdAt: "desc" },
+    }),
+    db.product.count(),
+    db.product.groupBy({ by: ["status"], _count: true }),
+  ]);
 
-  const counts = await db.product.groupBy({
-    by: ["status"],
-    _count: true,
-  });
   const countFor = (s: ProductStatus) =>
     counts.find((c) => c.status === s)?._count ?? 0;
 
@@ -62,6 +68,30 @@ export default async function AdminDashboardPage({
           </Link>
         </div>
       </div>
+
+      {demoSeeded && (
+        <p className="mt-4 rounded-xl bg-sage-200 px-4 py-3 text-sm text-sage-800">
+          {demoSeeded} produits d&apos;exemple créés — modifiez-les ou supprimez-les librement,
+          ce ne sont que des points de départ.
+        </p>
+      )}
+
+      {totalCount === 0 && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-terracotta-100 p-5">
+          <div>
+            <p className="font-semibold text-terracotta-800">Catalogue vide</p>
+            <p className="mt-1 text-sm text-terracotta-700">
+              Générez un jeu de produits d&apos;exemple pour voir le site prendre vie tout de
+              suite — entièrement modifiable ensuite.
+            </p>
+          </div>
+          <form action={seedDemoProducts}>
+            <button className="rounded-full bg-terracotta-600 px-4 py-2 text-sm font-semibold text-white hover:bg-terracotta-700">
+              Générer des produits d&apos;exemple
+            </button>
+          </form>
+        </div>
+      )}
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {STATUS_OPTIONS.map((s) => (

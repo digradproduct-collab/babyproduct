@@ -9,6 +9,7 @@ import { slugify } from "@/lib/slug";
 import { scoreRawSource as runLlmScoring } from "@/lib/scoring";
 import { uploadProductImage } from "@/lib/supabase";
 import { sendWeeklyDigest } from "@/lib/email";
+import { getDemoProducts } from "@/lib/demoProducts";
 import type { Category, ProductStatus, SourcePlatform } from "@/generated/prisma/client";
 
 async function requireAdmin() {
@@ -145,6 +146,28 @@ export async function updateProductStatus(id: string, status: ProductStatus) {
   revalidatePath("/admin");
   revalidatePath(`/admin/produits/${id}`);
   revalidatePath("/");
+}
+
+/**
+ * Crée (ou met à jour) un jeu de produits d'exemple pour démarrer le
+ * catalogue — pratique pour visualiser le site avant d'ajouter de vrais
+ * produits. Idempotent : peut être relancé sans créer de doublons.
+ */
+export async function seedDemoProducts() {
+  await requireAdmin();
+
+  const products = getDemoProducts();
+  for (const p of products) {
+    await db.product.upsert({
+      where: { slug: p.slug },
+      update: p,
+      create: p,
+    });
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  redirect(`/admin?demoSeeded=${products.length}`);
 }
 
 export async function deleteProduct(id: string) {
