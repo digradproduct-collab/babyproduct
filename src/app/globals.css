@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/*
+  Câlin Kids — design system "Organic"
+  Chaleureux, crème / terracotta / sauge, coins très arrondis,
+  Caprasimo (titres) + Figtree (texte).
+*/
+@theme {
+  /* Crème — fond, surfaces */
+  --color-cream-100: #fefcf8;
+  --color-cream-200: #fbf4e9;
+  --color-cream-300: #f7ead9;
+  --color-cream-400: #f0dcc0;
+  --color-cream-500: #e6c9a0;
+  --color-cream-600: #d3ab78;
+  --color-cream-700: #ad8657;
+  --color-cream-800: #82633f;
+  --color-cream-900: #533f29;
+
+  /* Terracotta — couleur de marque, CTA */
+  --color-terracotta-100: #fbeae3;
+  --color-terracotta-200: #f6d0c1;
+  --color-terracotta-300: #efab93;
+  --color-terracotta-400: #e6886b;
+  --color-terracotta-500: #dd6f52;
+  --color-terracotta-600: #c25640;
+  --color-terracotta-700: #9c4433;
+  --color-terracotta-800: #723327;
+  --color-terracotta-900: #48211a;
+
+  /* Sauge — accents secondaires, succès */
+  --color-sage-100: #f2f5ec;
+  --color-sage-200: #e2e9d5;
+  --color-sage-300: #c9daae;
+  --color-sage-400: #adc48b;
+  --color-sage-500: #90ab6b;
+  --color-sage-600: #728e50;
+  --color-sage-700: #5a7040;
+  --color-sage-800: #435330;
+  --color-sage-900: #2c3720;
+
+  /* Or — notes, badges de score */
+  --color-gold-400: #f2c66c;
+  --color-gold-500: #e6ab3c;
+  --color-gold-600: #c68d26;
+
+  /* Rouge doux — rejet, erreurs */
+  --color-berry-400: #e2897d;
+  --color-berry-500: #cf6555;
+  --color-berry-600: #ab4a3c;
+
+  /* Encre — texte */
+  --color-ink: #362a22;
+  --color-ink-soft: #75655a;
+
+  /* Radius généreux, organique */
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 2.75rem;
+  --radius-blob: 40% 60% 55% 45% / 45% 40% 60% 55%;
+
+  --font-display: var(--font-caprasimo);
+  --font-body: var(--font-figtree);
+}
+
+body {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+}
+
+::selection {
+  background: var(--color-terracotta-300);
+  color: var(--color-terracotta-900);
+}

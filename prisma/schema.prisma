@@ -1,0 +1,155 @@
+// Câlin Kids — schéma de base de données
+// learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Category {
+  SOMMEIL
+  SECURITE
+  JEU
+  EVEIL
+  EXTERIEUR
+  DOUDOU
+  REPAS
+  TRANSPORT
+  AUTRE
+}
+
+enum ProductStatus {
+  SPOTTED // À repérer
+  TESTING // En test
+  VALIDATED // Validé (commandé)
+  REJECTED // Rejeté
+}
+
+enum SourcePlatform {
+  TIKTOK
+  INSTAGRAM
+  FACEBOOK
+  PINTEREST
+  YOUTUBE
+  AUTRE
+}
+
+enum RawSourceStatus {
+  PENDING
+  PROCESSED
+  DISCARDED
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
+/// Contenu brut collecté à la main (lien + légende + métriques observées)
+/// avant analyse IA. Jamais publié tel quel : sert de matière première
+/// au scoring de viralité.
+model RawSource {
+  id                String           @id @default(cuid())
+  url               String
+  platform          SourcePlatform   @default(AUTRE)
+  caption           String?
+  observedViews     Int?
+  observedLikes     Int?
+  observedComments  Int?
+  observedShares    Int?
+  notes             String?
+  status            RawSourceStatus  @default(PENDING)
+  createdAt         DateTime         @default(now())
+  processedAt       DateTime?
+  resultingProduct  Product?
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  category    Category @default(AUTRE)
+  description String?
+  imageUrl    String?
+
+  sourceUrl      String?
+  sourcePlatform SourcePlatform?
+  rawSourceId    String?          @unique
+  rawSource      RawSource?       @relation(fields: [rawSourceId], references: [id])
+
+  supplierName        String?
+  supplierUrl          String?
+  estimatedPriceCents  Int?
+  estimatedCostCents   Int?
+  estimatedMarginPct   Float?
+
+  affiliateUrl String?
+
+  status              ProductStatus @default(SPOTTED)
+  viralScore          Int?
+  viralScoreRationale String?
+
+  rating     Float?
+  tags       String[] @default([])
+  isFeatured Boolean  @default(false)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  validatedAt DateTime?
+
+  metrics ProductMetricSnapshot[]
+  clicks  Click[]
+
+  @@index([status])
+  @@index([category])
+}
+
+/// Historique des métriques d'engagement dans le temps, pour distinguer
+/// un buzz durable d'un pic isolé.
+model ProductMetricSnapshot {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  views          Int?
+  likes          Int?
+  comments       Int?
+  shares         Int?
+  engagementRate Float?
+  capturedAt     DateTime @default(now())
+
+  @@index([productId, capturedAt])
+}
+
+model Click {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  source    String?
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([path, createdAt])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
