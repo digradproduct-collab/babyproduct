@@ -7,10 +7,12 @@ export function StickyBuyBar({
   name,
   priceLabel,
   ctaUrl,
+  hasOffer = true,
 }: {
   name: string;
   priceLabel: string | null;
   ctaUrl: string;
+  hasOffer?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -38,11 +40,11 @@ export function StickyBuyBar({
             </div>
             <a
               href={ctaUrl}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
+              target={hasOffer ? "_blank" : undefined}
+              rel={hasOffer ? "noopener noreferrer sponsored" : undefined}
               className="btn-shine shrink-0 bg-terracotta-600 px-5 py-2.5 text-sm text-white hover:bg-terracotta-700"
             >
-              Voir l&apos;offre
+              {hasOffer ? "Voir l'offre" : "Bientôt dispo"}
             </a>
           </div>
         </motion.div>

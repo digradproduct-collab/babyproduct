@@ -123,7 +123,9 @@ export default async function AnalyticsPage({
         <h2 className="font-display text-lg text-ink">Conversion par produit &amp; par source</h2>
         <p className="mt-1 text-sm text-ink-soft">
           Pour chaque produit : combien de vues sa fiche a reçues depuis chaque source, et combien
-          ont cliqué vers l&apos;offre.
+          ont cliqué vers l&apos;offre. La colonne « dont sortants » isole les clics ayant
+          réellement mené chez un marchand — les autres sont des clics d&apos;intérêt sur un
+          produit sans lien d&apos;affiliation encore en place.
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -133,6 +135,7 @@ export default async function AnalyticsPage({
                 <th className="py-2">Source</th>
                 <th className="py-2">Vues</th>
                 <th className="py-2">Clics</th>
+                <th className="py-2">dont sortants</th>
                 <th className="py-2">Conversion</th>
               </tr>
             </thead>
@@ -143,12 +146,20 @@ export default async function AnalyticsPage({
                   <td className="py-2 text-ink-soft">{row.source}</td>
                   <td className="py-2 text-ink-soft">{row.views}</td>
                   <td className="py-2 text-ink-soft">{row.clicks}</td>
+                  <td className="py-2 text-ink-soft">
+                    {row.outboundClicks}
+                    {row.outboundClicks < row.clicks && (
+                      <span className="ml-1 text-xs text-cream-700">
+                        ({row.clicks - row.outboundClicks} sans lien)
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 text-ink-soft">{row.conversionRate}%</td>
                 </tr>
               ))}
               {conversionRows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-ink-soft">
+                  <td colSpan={6} className="py-6 text-center text-ink-soft">
                     Pas encore de données sur cette période.
                   </td>
                 </tr>

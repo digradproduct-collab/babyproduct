@@ -53,11 +53,11 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
           <a
             href={`/api/clic/${product.id}?source=${CATEGORY_SLUGS[product.category]}`}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
+            target={product.affiliateUrl ? "_blank" : undefined}
+            rel={product.affiliateUrl ? "noopener noreferrer sponsored" : undefined}
             className="btn-shine bg-terracotta-600 px-4 py-2 text-xs text-white transition-colors hover:bg-terracotta-700"
           >
-            Voir l&apos;offre
+            {product.affiliateUrl ? "Voir l'offre" : "Bientôt dispo"}
           </a>
         </div>
       </div>

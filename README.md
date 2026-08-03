@@ -164,6 +164,12 @@ vers l'offre.
 - **Clics affiliés** : chaque bouton « Voir l'offre » pointe vers `/api/clic/[productId]`, qui
   enregistre le clic (`Click` : produit, contexte sur le site, source utm) puis redirige vers le
   lien d'affiliation réel.
+- **Produits sans affiliation encore en place** : le clic est enregistré quand même, avec
+  `Click.hadDestination = false`, et le visiteur revient sur la fiche avec un message honnête
+  (« pas encore disponible »). Le bouton affiche alors « Bientôt disponible » au lieu de
+  « Voir l'offre ». Cela permet de mesurer l'intérêt réel pendant la recherche de partenaires
+  sans faire croire à une vente possible. Dans `/admin/analytics`, la colonne « dont sortants »
+  sépare ces clics d'intérêt des vrais clics sortants, pour ne pas fausser la conversion.
 - **Vues de page** : `PageViewTracker` envoie un événement à `/api/pageview` à chaque navigation ;
   les vues de fiches produits sont rattachées au produit (`PageView.productId`).
 - **Dashboard** : `/admin/analytics` — deux tableaux clés : performance globale par source

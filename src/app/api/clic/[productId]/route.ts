@@ -12,10 +12,12 @@ export async function GET(
 
   const product = await db.product.findUnique({ where: { id: productId } });
 
-  if (!product || !product.affiliateUrl || product.status !== "VALIDATED") {
+  if (!product || product.status !== "VALIDATED") {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
+  // Le clic est enregistré même sans lien marchand : pendant la phase de
+  // recherche d'affiliation, l'intention d'achat reste la donnée à mesurer.
   await db.click.create({
     data: {
       productId: product.id,
@@ -25,8 +27,13 @@ export async function GET(
       utmCampaign: attribution?.utmCampaign,
       referrer: request.headers.get("referer"),
       userAgent: request.headers.get("user-agent"),
+      hadDestination: !!product.affiliateUrl,
     },
   });
+
+  if (!product.affiliateUrl) {
+    return NextResponse.redirect(new URL(`/produits/${product.slug}?offre=indisponible`, request.url));
+  }
 
   return NextResponse.redirect(product.affiliateUrl);
 }

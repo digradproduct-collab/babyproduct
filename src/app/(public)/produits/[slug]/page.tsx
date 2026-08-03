@@ -40,10 +40,13 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ offre?: string }>;
 }) {
   const { slug } = await params;
+  const { offre } = await searchParams;
 
   const product = await db.product.findUnique({ where: { slug } });
   if (!product || product.status !== "VALIDATED") notFound();
@@ -88,13 +91,25 @@ export default async function ProductDetailPage({
       {product.promoEndsAt && <PromoCountdownBar endsAt={product.promoEndsAt.toISOString()} />}
 
       <main className="mx-auto max-w-5xl px-6 py-14">
-        <StickyBuyBar name={product.name} priceLabel={priceLabel} ctaUrl={clicUrl} />
+        <StickyBuyBar
+          name={product.name}
+          priceLabel={priceLabel}
+          ctaUrl={clicUrl}
+          hasOffer={!!product.affiliateUrl}
+        />
 
         <nav className="text-sm text-ink-soft">
           <Link href={`/categories/${CATEGORY_SLUGS[product.category]}`} className="hover:text-terracotta-600">
             {CATEGORY_LABELS[product.category]}
           </Link>
         </nav>
+
+        {offre === "indisponible" && (
+          <p className="mt-4 rounded-xl border border-cream-400 bg-cream-200 px-4 py-3 text-sm text-ink">
+            Merci de votre intérêt ! Ce produit n&apos;est pas encore disponible à la vente chez
+            nous — nous cherchons actuellement un revendeur. Votre visite nous aide à prioriser.
+          </p>
+        )}
 
         <div className="mt-4 grid grid-cols-1 gap-10 md:grid-cols-2">
           <FadeIn>
@@ -170,18 +185,35 @@ export default async function ProductDetailPage({
               </div>
             )}
 
-            <MagneticButton
-              as="a"
-              href={clicUrl}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg text-white shadow-lg transition-colors hover:bg-terracotta-700"
-            >
-              Voir l&apos;offre
-            </MagneticButton>
-            <p className="mt-2 text-xs text-ink-soft">
-              Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous.
-            </p>
+            {product.affiliateUrl ? (
+              <>
+                <MagneticButton
+                  as="a"
+                  href={clicUrl}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg text-white shadow-lg transition-colors hover:bg-terracotta-700"
+                >
+                  Voir l&apos;offre
+                </MagneticButton>
+                <p className="mt-2 text-xs text-ink-soft">
+                  Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous.
+                </p>
+              </>
+            ) : (
+              <>
+                <MagneticButton
+                  as="a"
+                  href={clicUrl}
+                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg text-white shadow-lg transition-colors hover:bg-terracotta-700"
+                >
+                  Bientôt disponible
+                </MagneticButton>
+                <p className="mt-2 text-xs text-ink-soft">
+                  Nous n&apos;avons pas encore de revendeur pour ce produit.
+                </p>
+              </>
+            )}
 
             {product.sourceUrl && (
               <a

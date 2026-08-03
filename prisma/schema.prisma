@@ -153,6 +153,12 @@ model Click {
   userAgent   String?
   createdAt   DateTime @default(now())
 
+  /// false quand le produit n'avait pas encore de lien marchand au moment du
+  /// clic : l'intention d'achat est réelle et comptée, mais le visiteur n'a
+  /// été redirigé nulle part. Permet de ne pas mélanger ces clics avec les
+  /// vrais clics sortants dans les statistiques de conversion.
+  hadDestination Boolean @default(true)
+
   @@index([productId, createdAt])
   @@index([utmSource, createdAt])
 }

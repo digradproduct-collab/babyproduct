@@ -6,6 +6,8 @@ export type ConversionRow = {
   source: string;
   views: number;
   clicks: number;
+  /** Sous-ensemble de `clicks` ayant réellement mené vers un marchand. */
+  outboundClicks: number;
   conversionRate: number;
 };
 
@@ -24,7 +26,7 @@ export async function getConversionByProductAndSource(since?: Date): Promise<Con
       _count: true,
     }),
     db.click.groupBy({
-      by: ["productId", "utmSource"],
+      by: ["productId", "utmSource", "hadDestination"],
       where: { createdAt: since ? { gte: since } : undefined },
       _count: true,
     }),
@@ -43,25 +45,30 @@ export async function getConversionByProductAndSource(since?: Date): Promise<Con
       source: g.utmSource ?? UNKNOWN_SOURCE,
       views: g._count,
       clicks: 0,
+      outboundClicks: 0,
       conversionRate: 0,
     });
   }
 
+  // Un même couple produit/source produit deux groupes (avec et sans
+  // destination) : on cumule au lieu d'écraser.
   for (const g of clickGroups) {
     const k = rowKey(g.productId, g.utmSource);
-    const existing = rows.get(k);
-    if (existing) {
-      existing.clicks = g._count;
-    } else {
-      rows.set(k, {
+    let row = rows.get(k);
+    if (!row) {
+      row = {
         productId: g.productId,
         productName: productNames.get(g.productId) ?? "Produit supprimé",
         source: g.utmSource ?? UNKNOWN_SOURCE,
         views: 0,
-        clicks: g._count,
+        clicks: 0,
+        outboundClicks: 0,
         conversionRate: 0,
-      });
+      };
+      rows.set(k, row);
     }
+    row.clicks += g._count;
+    if (g.hadDestination) row.outboundClicks += g._count;
   }
 
   for (const row of rows.values()) {
