@@ -75,9 +75,12 @@ export default async function ProductDetailPage({
 
   const featuredTestimonial = [...testimonials].sort((a, b) => b.rating - a.rating)[0] ?? null;
 
-  const storyImages = images.slice(1);
+  // À défaut de photos secondaires, la photo principale sert aussi aux blocs
+  // storytelling : une fiche avec une seule image garde quand même la structure.
+  const extraImages = images.slice(1);
+  const storyImages = extraImages.length > 0 ? extraImages : images;
   const storyBlocks = product.highlights
-    .slice(0, storyImages.length)
+    .slice(0, Math.min(storyImages.length, 2))
     .map((headline, i) => ({ image: storyImages[i], headline }));
 
   return (
@@ -196,7 +199,7 @@ export default async function ProductDetailPage({
         {storyBlocks.length > 0 && (
           <div className="mt-20 flex flex-col gap-16">
             {storyBlocks.map((block, i) => (
-              <FadeIn key={block.image}>
+              <FadeIn key={block.headline}>
                 <StoryBlock
                   image={block.image}
                   alt={`${product.name} — ${block.headline}`}
