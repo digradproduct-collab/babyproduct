@@ -16,6 +16,12 @@ function centsToInput(cents: number | null | undefined) {
   return (cents / 100).toFixed(2);
 }
 
+function toDatetimeLocal(date: Date) {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
 export function ProductForm({
   action,
   product,
@@ -161,6 +167,20 @@ export function ProductForm({
           defaultValue={product?.rating ?? ""}
           className="rounded-lg border border-cream-500 bg-white px-3 py-2"
         />
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Fin de promotion (optionnel)
+        <input
+          name="promoEndsAt"
+          type="datetime-local"
+          defaultValue={product?.promoEndsAt ? toDatetimeLocal(product.promoEndsAt) : ""}
+          className="rounded-lg border border-cream-500 bg-white px-3 py-2"
+        />
+        <span className="text-xs text-ink-soft">
+          Un bandeau compte à rebours réel s&apos;affiche sur la fiche publique jusqu&apos;à
+          cette date. Laissez vide pour ne rien afficher.
+        </span>
       </label>
 
       <div className="sm:col-span-2 border-t border-cream-400 pt-5">

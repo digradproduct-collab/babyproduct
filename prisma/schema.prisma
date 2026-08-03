@@ -84,6 +84,9 @@ model Product {
   faq         Json?
   /// [{ "author": string, "rating": number, "quote": string }]
   testimonials Json?
+  /// Fin d'une promotion réelle définie par l'admin — affiche un bandeau
+  /// compte à rebours honnête sur la fiche publique tant que non dépassée.
+  promoEndsAt DateTime?
 
   sourceUrl      String?
   sourcePlatform SourcePlatform?

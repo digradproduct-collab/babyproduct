@@ -36,6 +36,7 @@ const productSchema = z.object({
   highlights: z.string().optional(),
   faq: z.string().optional(),
   testimonials: z.string().optional(),
+  promoEndsAt: z.string().optional(),
 });
 
 function toRating(value: string | undefined) {
@@ -43,6 +44,12 @@ function toRating(value: string | undefined) {
   const n = Number.parseFloat(value);
   if (Number.isNaN(n)) return null;
   return Math.min(5, Math.max(0, n));
+}
+
+function toDate(value: string | undefined) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function toCents(value: string | undefined) {
@@ -110,6 +117,7 @@ export async function createProduct(formData: FormData) {
       highlights: raw.highlights ? parseLines(raw.highlights) : [],
       faq: raw.faq ? parseFaqText(raw.faq) : undefined,
       testimonials: raw.testimonials ? parseTestimonialsText(raw.testimonials) : undefined,
+      promoEndsAt: toDate(raw.promoEndsAt),
     },
   });
 
@@ -148,6 +156,7 @@ export async function updateProduct(id: string, formData: FormData) {
       highlights: raw.highlights ? parseLines(raw.highlights) : [],
       faq: raw.faq ? parseFaqText(raw.faq) : undefined,
       testimonials: raw.testimonials ? parseTestimonialsText(raw.testimonials) : undefined,
+      promoEndsAt: toDate(raw.promoEndsAt),
     },
   });
 

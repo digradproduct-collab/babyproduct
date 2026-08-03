@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { ProductGallery } from "@/components/ProductGallery";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
+import { PromoCountdownBar } from "@/components/PromoCountdownBar";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { CATEGORY_LABELS, CATEGORY_SLUGS, PLATFORM_LABELS } from "@/lib/labels";
@@ -71,133 +72,192 @@ export default async function ProductDetailPage({
       : null;
   const clicUrl = `/api/clic/${product.id}?source=fiche-produit`;
 
+  const featuredTestimonial = [...testimonials].sort((a, b) => b.rating - a.rating)[0] ?? null;
+
   return (
-    <main className="mx-auto max-w-5xl px-6 py-14">
-      <StickyBuyBar name={product.name} priceLabel={priceLabel} ctaUrl={clicUrl} />
+    <>
+      {product.promoEndsAt && <PromoCountdownBar endsAt={product.promoEndsAt.toISOString()} />}
 
-      <nav className="text-sm text-ink-soft">
-        <Link href={`/categories/${CATEGORY_SLUGS[product.category]}`} className="hover:text-terracotta-600">
-          {CATEGORY_LABELS[product.category]}
-        </Link>
-      </nav>
+      <main className="mx-auto max-w-5xl px-6 py-14">
+        <StickyBuyBar name={product.name} priceLabel={priceLabel} ctaUrl={clicUrl} />
 
-      <div className="mt-4 grid grid-cols-1 gap-10 md:grid-cols-2">
-        <FadeIn>
-          <ProductGallery images={images} alt={product.name} />
-        </FadeIn>
+        <nav className="text-sm text-ink-soft">
+          <Link href={`/categories/${CATEGORY_SLUGS[product.category]}`} className="hover:text-terracotta-600">
+            {CATEGORY_LABELS[product.category]}
+          </Link>
+        </nav>
 
-        <FadeIn delay={0.1}>
-          {product.sourcePlatform && product.sourcePlatform !== "AUTRE" && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sage-800">
-              🔥 Vu sur {PLATFORM_LABELS[product.sourcePlatform]}
-            </span>
-          )}
+        <div className="mt-4 grid grid-cols-1 gap-10 md:grid-cols-2">
+          <FadeIn>
+            <ProductGallery images={images} alt={product.name} />
+          </FadeIn>
 
-          <h1 className="mt-3 font-display text-3xl text-ink">{product.name}</h1>
+          <FadeIn delay={0.1}>
+            {featuredTestimonial && (
+              <div className="mb-4 flex items-start gap-3 rounded-2xl bg-cream-200 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta-200 font-display text-terracotta-800">
+                  {featuredTestimonial.author.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-ink">{featuredTestimonial.author}</p>
+                  <p className="text-gold-600 text-xs">
+                    {"★".repeat(featuredTestimonial.rating)}
+                    {"☆".repeat(5 - featuredTestimonial.rating)}
+                    <span className="ml-1 text-ink-soft">
+                      Basé sur {testimonials.length} avis
+                    </span>
+                  </p>
+                  <p className="mt-1 text-sm italic text-ink-soft">
+                    &ldquo;{featuredTestimonial.quote}&rdquo;
+                  </p>
+                </div>
+              </div>
+            )}
 
-          <div className="mt-2 flex items-center gap-3 text-sm text-ink-soft">
-            {displayRating != null && (
-              <span className="flex items-center gap-1 text-gold-600">
-                {"★".repeat(Math.round(displayRating))}
-                {"☆".repeat(5 - Math.round(displayRating))}
-                <span className="text-ink-soft">
-                  {displayRating.toFixed(1)}
-                  {testimonials.length > 0 && ` (${testimonials.length} avis)`}
-                </span>
+            {product.sourcePlatform && product.sourcePlatform !== "AUTRE" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sage-800">
+                🔥 Vu sur {PLATFORM_LABELS[product.sourcePlatform]}
               </span>
             )}
-            {priceLabel && <span className="font-semibold text-ink">{priceLabel}</span>}
-          </div>
 
-          {product.description && <p className="mt-5 text-ink-soft">{product.description}</p>}
+            <h1 className="mt-3 font-display text-3xl text-ink">{product.name}</h1>
 
-          {product.highlights.length > 0 && (
-            <ul className="mt-5 flex flex-col gap-2">
-              {product.highlights.map((h) => (
-                <li key={h} className="flex items-start gap-2 text-sm text-ink">
-                  <span className="mt-0.5 text-sage-600">✓</span>
-                  {h}
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {product.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {product.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-cream-300 px-3 py-1 text-xs text-ink-soft">
-                  #{tag}
+            <div className="mt-2 flex items-center gap-3 text-sm text-ink-soft">
+              {displayRating != null && (
+                <span className="flex items-center gap-1 text-gold-600">
+                  {"★".repeat(Math.round(displayRating))}
+                  {"☆".repeat(5 - Math.round(displayRating))}
+                  <span className="text-ink-soft">
+                    {displayRating.toFixed(1)}
+                    {testimonials.length > 0 && ` (${testimonials.length} avis)`}
+                  </span>
                 </span>
-              ))}
+              )}
+              {priceLabel && <span className="font-semibold text-ink">{priceLabel}</span>}
             </div>
-          )}
 
-          <MagneticButton
-            as="a"
-            href={clicUrl}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="mt-8 inline-block rounded-full bg-terracotta-600 px-6 py-3 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(194,86,64,0.55)] transition-colors hover:bg-terracotta-700"
-          >
-            Voir l&apos;offre
-          </MagneticButton>
-          <p className="mt-2 text-xs text-ink-soft">
-            Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous.
-          </p>
+            {product.description && <p className="mt-5 text-ink-soft">{product.description}</p>}
 
-          {product.sourceUrl && (
-            <a
-              href={product.sourceUrl}
+            {product.highlights.length > 0 && (
+              <div className="mt-5 flex flex-col gap-1.5">
+                {product.highlights.map((h) => (
+                  <div
+                    key={h}
+                    className="rounded-lg bg-cream-200 px-3 py-2 text-sm font-medium text-ink"
+                  >
+                    {h}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {product.tags.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {product.tags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-cream-300 px-3 py-1 text-xs text-ink-soft">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <MagneticButton
+              as="a"
+              href={clicUrl}
               target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 block text-xs text-ink-soft underline hover:text-terracotta-600"
+              rel="noopener noreferrer sponsored"
+              className="mt-8 inline-block rounded-full bg-terracotta-600 px-6 py-3 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(194,86,64,0.55)] transition-colors hover:bg-terracotta-700"
             >
-              Voir la publication d&apos;origine →
-            </a>
-          )}
-        </FadeIn>
-      </div>
+              Voir l&apos;offre
+            </MagneticButton>
+            <p className="mt-2 text-xs text-ink-soft">
+              Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous.
+            </p>
 
-      {testimonials.length > 0 && (
-        <FadeIn>
+            {product.sourceUrl && (
+              <a
+                href={product.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 block text-xs text-ink-soft underline hover:text-terracotta-600"
+              >
+                Voir la publication d&apos;origine →
+              </a>
+            )}
+          </FadeIn>
+        </div>
+
+        {product.highlights.length >= 2 && (
+          <FadeIn>
+            <section className="mt-16">
+              <h2 className="font-display text-xl text-ink">
+                Pourquoi choisir {product.name}
+              </h2>
+              <div className="mt-6 overflow-hidden rounded-2xl bg-cream-100">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="bg-cream-300">
+                      <th className="px-4 py-3 text-ink-soft"></th>
+                      <th className="px-4 py-3 font-display text-terracotta-700">Câlin Kids</th>
+                      <th className="px-4 py-3 text-ink-soft">Version basique</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {product.highlights.map((h) => (
+                      <tr key={h} className="border-t border-cream-300">
+                        <td className="px-4 py-3 text-ink">{h}</td>
+                        <td className="px-4 py-3 text-center text-sage-600">✓</td>
+                        <td className="px-4 py-3 text-center text-berry-500">✕</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </FadeIn>
+        )}
+
+        {testimonials.length > 0 && (
+          <FadeIn>
+            <section className="mt-16">
+              <h2 className="font-display text-xl text-ink">Avis clients</h2>
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {testimonials.map((t) => (
+                  <div key={`${t.author}-${t.quote.slice(0, 10)}`} className="rounded-2xl bg-cream-100 p-5">
+                    <p className="text-gold-600">{"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}</p>
+                    <p className="mt-2 text-sm text-ink">&ldquo;{t.quote}&rdquo;</p>
+                    <p className="mt-3 text-xs font-semibold text-ink-soft">{t.author}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </FadeIn>
+        )}
+
+        {faq.length > 0 && (
+          <FadeIn>
+            <section className="mt-16">
+              <h2 className="font-display text-xl text-ink">Questions fréquentes</h2>
+              <div className="mt-6">
+                <FaqAccordion items={faq} />
+              </div>
+            </section>
+          </FadeIn>
+        )}
+
+        {alternatives.length > 0 && (
           <section className="mt-16">
-            <h2 className="font-display text-xl text-ink">Avis clients</h2>
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {testimonials.map((t) => (
-                <div key={`${t.author}-${t.quote.slice(0, 10)}`} className="rounded-2xl bg-cream-100 p-5">
-                  <p className="text-gold-600">{"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}</p>
-                  <p className="mt-2 text-sm text-ink">&ldquo;{t.quote}&rdquo;</p>
-                  <p className="mt-3 text-xs font-semibold text-ink-soft">{t.author}</p>
-                </div>
+            <h2 className="font-display text-xl text-ink">Autres pépites {CATEGORY_LABELS[product.category].toLowerCase()}</h2>
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
+              {alternatives.map((alt, i) => (
+                <FadeIn key={alt.id} delay={Math.min(i * 0.06, 0.2)}>
+                  <ProductCard product={alt} />
+                </FadeIn>
               ))}
             </div>
           </section>
-        </FadeIn>
-      )}
-
-      {faq.length > 0 && (
-        <FadeIn>
-          <section className="mt-16">
-            <h2 className="font-display text-xl text-ink">Questions fréquentes</h2>
-            <div className="mt-6">
-              <FaqAccordion items={faq} />
-            </div>
-          </section>
-        </FadeIn>
-      )}
-
-      {alternatives.length > 0 && (
-        <section className="mt-16">
-          <h2 className="font-display text-xl text-ink">Autres pépites {CATEGORY_LABELS[product.category].toLowerCase()}</h2>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {alternatives.map((alt, i) => (
-              <FadeIn key={alt.id} delay={Math.min(i * 0.06, 0.2)}>
-                <ProductCard product={alt} />
-              </FadeIn>
-            ))}
-          </div>
-        </section>
-      )}
-    </main>
+        )}
+      </main>
+    </>
   );
 }

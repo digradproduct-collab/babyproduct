@@ -22,6 +22,7 @@ export type DemoProduct = {
   isFeatured?: boolean;
   affiliateUrl?: string;
   validatedAt?: Date;
+  promoEndsAt?: Date;
 };
 
 /**
@@ -161,6 +162,7 @@ export function getDemoProducts(): DemoProduct[] {
       isFeatured: true,
       affiliateUrl: "https://example.com/affilie/doudou-lapin",
       validatedAt: now,
+      promoEndsAt: new Date(now.getTime() + 4 * 60 * 60 * 1000),
     },
     {
       slug: "cubes-empilables-bois",

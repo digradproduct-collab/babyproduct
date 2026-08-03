@@ -29,9 +29,9 @@ export function StickyBuyBar({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-400 bg-cream-100/95 px-4 py-3 backdrop-blur sm:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-cream-400 bg-cream-100/95 px-4 py-3 backdrop-blur"
         >
-          <div className="flex items-center justify-between gap-3">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-ink">{name}</p>
               {priceLabel && <p className="text-xs text-ink-soft">{priceLabel}</p>}
