@@ -22,13 +22,17 @@ export default async function ProductDetailPage({
 }) {
   const { id } = await params;
 
-  const product = await db.product.findUnique({
-    where: { id },
-    include: {
-      metrics: { orderBy: { capturedAt: "desc" }, take: 12 },
-      _count: { select: { clicks: true } },
-    },
-  });
+  const [product, feeds] = await Promise.all([
+    db.product.findUnique({
+      where: { id },
+      include: {
+        metrics: { orderBy: { capturedAt: "desc" }, take: 12 },
+        feed: { select: { name: true } },
+        _count: { select: { clicks: true } },
+      },
+    }),
+    db.productFeed.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+  ]);
 
   if (!product) notFound();
 
@@ -107,7 +111,12 @@ export default async function ProductDetailPage({
       <section className="mt-6 rounded-2xl bg-cream-100 p-6">
         <h2 className="font-display text-lg text-ink">Fiche produit</h2>
         <div className="mt-4">
-          <ProductForm action={updateWithId} product={product} submitLabel="Enregistrer" />
+          <ProductForm
+            action={updateWithId}
+            product={product}
+            submitLabel="Enregistrer"
+            feeds={feeds}
+          />
         </div>
       </section>
 

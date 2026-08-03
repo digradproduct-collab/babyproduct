@@ -24,6 +24,9 @@ export default async function AdminLayout({
             <Link href="/admin/sources" className="hover:text-terracotta-600">
               Sources
             </Link>
+            <Link href="/admin/flux" className="hover:text-terracotta-600">
+              Flux régies
+            </Link>
             <Link href="/admin/analytics" className="hover:text-terracotta-600">
               Analytics
             </Link>

@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron/scan-candidates", "schedule": "17 6 * * *" },
+    { "path": "/api/cron/refresh-prices", "schedule": "41 5 * * *" },
     { "path": "/api/cron/send-newsletter", "schedule": "23 8 * * 1" }
   ]
 }

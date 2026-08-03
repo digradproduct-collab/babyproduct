@@ -37,6 +37,8 @@ const productSchema = z.object({
   faq: z.string().optional(),
   testimonials: z.string().optional(),
   promoEndsAt: z.string().optional(),
+  feedId: z.string().optional(),
+  externalId: z.string().optional(),
 });
 
 function toRating(value: string | undefined) {
@@ -118,6 +120,8 @@ export async function createProduct(formData: FormData) {
       faq: raw.faq ? parseFaqText(raw.faq) : undefined,
       testimonials: raw.testimonials ? parseTestimonialsText(raw.testimonials) : undefined,
       promoEndsAt: toDate(raw.promoEndsAt),
+      feedId: raw.feedId || null,
+      externalId: raw.externalId?.trim() || null,
     },
   });
 
@@ -157,6 +161,8 @@ export async function updateProduct(id: string, formData: FormData) {
       faq: raw.faq ? parseFaqText(raw.faq) : undefined,
       testimonials: raw.testimonials ? parseTestimonialsText(raw.testimonials) : undefined,
       promoEndsAt: toDate(raw.promoEndsAt),
+      feedId: raw.feedId || null,
+      externalId: raw.externalId?.trim() || null,
     },
   });
 

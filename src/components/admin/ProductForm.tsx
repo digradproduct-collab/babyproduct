@@ -26,10 +26,12 @@ export function ProductForm({
   action,
   product,
   submitLabel,
+  feeds = [],
 }: {
   action: (formData: FormData) => void;
   product?: Product;
   submitLabel: string;
+  feeds?: { id: string; name: string }[];
 }) {
   const faq = isFaqArray(product?.faq) ? product.faq : [];
   const testimonials = isTestimonialArray(product?.testimonials) ? product.testimonials : [];
@@ -154,6 +156,40 @@ export function ProductForm({
           defaultValue={product?.affiliateUrl ?? ""}
           className="rounded-lg border border-cream-500 bg-white px-3 py-2"
         />
+        <span className="text-xs text-ink-soft">
+          Écrasé automatiquement par le lien tracké du flux si le produit est rattaché à une
+          régie ci-dessous.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Flux régie (prix automatique)
+        <select
+          name="feedId"
+          defaultValue={product?.feedId ?? ""}
+          className="rounded-lg border border-cream-500 bg-white px-3 py-2"
+        >
+          <option value="">Aucun — prix saisi à la main</option>
+          {feeds.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Identifiant chez l&apos;annonceur
+        <input
+          name="externalId"
+          defaultValue={product?.externalId ?? ""}
+          placeholder="SKU-100"
+          className="rounded-lg border border-cream-500 bg-white px-3 py-2"
+        />
+        <span className="text-xs text-ink-soft">
+          La référence du produit dans le flux (SKU, EAN, merchant_product_id). C&apos;est elle
+          qui permet de retrouver le bon prix.
+        </span>
       </label>
 
       <label className="flex flex-col gap-1 text-sm">

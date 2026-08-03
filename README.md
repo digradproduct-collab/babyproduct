@@ -176,6 +176,35 @@ vers l'offre.
   (`utm_source`), et conversion détaillée par produit × par source (vues, clics, taux de
   conversion), pour savoir précisément quel produit + quelle source fonctionne.
 
+## Prix automatiques (flux des régies d'affiliation)
+
+Les prix marchands changent en permanence : un prix affiché comme ferme mais périmé
+expose à une pratique commerciale trompeuse (art. L121-2). Les prix peuvent donc être
+synchronisés depuis les catalogues fournis par les régies.
+
+- **Régies gérées** : Awin, Effiliation, Rakuten Advertising, TradeDoubler — plus un mode
+  « Autre régie » générique. Formats CSV, XML et JSON, y compris compressés en `.gz`
+  (fréquent chez Awin).
+- **Configuration** : `/admin/flux` — nom, régie, format et URL du flux (clé d'API incluse,
+  jamais exposée publiquement). Un bouton « Synchroniser » permet de tester la configuration
+  immédiatement.
+- **Rattachement** : sur la fiche produit en admin, choisir le flux et renseigner
+  « Identifiant chez l'annonceur » (SKU, EAN, `merchant_product_id`). C'est cette référence
+  qui relie le produit à sa ligne dans le catalogue.
+- **Colonnes** : chaque régie a ses noms de colonnes usuels, essayés automatiquement
+  (`src/lib/feeds/presets.ts`). Si un annonceur en utilise d'autres, les options avancées du
+  flux permettent de les indiquer, une ligne par champ (`price: montant_ttc`).
+- **Ce qui est écrasé** : uniquement le prix, la devise, le stock et le lien tracké. Le nom,
+  la description et les photos restent éditoriaux — les libellés de flux sont bruts et
+  rarement présentables.
+- **Fraîcheur** : `PRICE_MAX_AGE_HOURS` (24 h). Un prix synchronisé plus ancien cesse d'être
+  affiché ; un prix saisi à la main est présenté comme « indicatif », jamais comme ferme.
+- **Planification** : cron quotidien `/api/cron/refresh-prices` (voir `vercel.json`).
+
+Tests sans accès réseau : `npx tsx scripts/test-feeds.ts` (analyseurs et conversion de prix
+pour les quatre régies) et `npx tsx scripts/test-feed-sync.ts` (synchronisation complète
+contre un serveur de flux local ; nécessite `DATABASE_URL`).
+
 ## Transparence affiliation
 
 La mention légale d'affiliation est obligatoire et se trouve en pied de page + sur

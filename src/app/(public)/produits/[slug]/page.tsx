@@ -12,6 +12,7 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { CATEGORY_LABELS, CATEGORY_SLUGS, PLATFORM_LABELS } from "@/lib/labels";
 import { isFaqArray, isTestimonialArray } from "@/lib/productContent";
+import { publicPrice } from "@/lib/price";
 
 export async function generateMetadata({
   params,
@@ -70,10 +71,8 @@ export default async function ProductDetailPage({
       ? testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length
       : null;
   const displayRating = product.rating ?? avgTestimonialRating;
-  const priceLabel =
-    product.estimatedPriceCents != null
-      ? `${(product.estimatedPriceCents / 100).toFixed(2)} €`
-      : null;
+  const price = publicPrice(product);
+  const priceLabel = price.kind === "tracked" || price.kind === "indicative" ? price.label : null;
   const clicUrl = `/api/clic/${product.id}?source=fiche-produit`;
 
   const featuredTestimonial = [...testimonials].sort((a, b) => b.rating - a.rating)[0] ?? null;
@@ -159,6 +158,29 @@ export default async function ProductDetailPage({
               )}
               {priceLabel && <span className="font-semibold text-ink">{priceLabel}</span>}
             </div>
+
+            {price.kind === "tracked" && (
+              <p className="mt-1 text-xs text-ink-soft">
+                Prix constaté le {price.checkedAt} chez le marchand — susceptible d&apos;avoir
+                changé depuis.
+              </p>
+            )}
+            {price.kind === "indicative" && (
+              <p className="mt-1 text-xs text-ink-soft">
+                Prix indicatif — le prix final est celui affiché sur le site du marchand.
+              </p>
+            )}
+            {price.kind === "stale" && (
+              <p className="mt-1 text-xs text-ink-soft">
+                Prix non vérifié récemment — consultez le site du marchand pour le prix à jour.
+              </p>
+            )}
+
+            {product.inStock === false && (
+              <p className="mt-3 inline-block rounded-lg bg-cream-300 px-3 py-1.5 text-sm font-semibold text-ink">
+                Actuellement en rupture chez le marchand
+              </p>
+            )}
 
             {product.description && <p className="mt-5 text-ink-soft">{product.description}</p>}
 

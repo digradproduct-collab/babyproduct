@@ -4,9 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { CATEGORY_LABELS, CATEGORY_SLUGS } from "@/lib/labels";
+import { publicPrice } from "@/lib/price";
 import type { Product } from "@/generated/prisma/client";
 
 export function ProductCard({ product }: { product: Product }) {
+  const price = publicPrice(product);
+  const priceLabel = price.kind === "tracked" || price.kind === "indicative" ? price.label : null;
+
   return (
     <motion.div
       whileHover={{ y: -6 }}
@@ -47,9 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
             {product.rating != null && (
               <span className="text-gold-600">★ {product.rating.toFixed(1)}</span>
             )}
-            {product.estimatedPriceCents != null && (
-              <span>{(product.estimatedPriceCents / 100).toFixed(2)} €</span>
-            )}
+            {priceLabel && <span>{priceLabel}</span>}
           </div>
           <a
             href={`/api/clic/${product.id}?source=${CATEGORY_SLUGS[product.category]}`}

@@ -38,6 +38,53 @@ enum SourcePlatform {
   AUTRE
 }
 
+/// Régie d'affiliation fournissant un flux produits (prix, stock, lien tracké).
+enum AffiliateNetwork {
+  AWIN
+  EFFILIATION
+  RAKUTEN
+  TRADEDOUBLER
+  AUTRE
+}
+
+enum FeedFormat {
+  CSV
+  XML
+  JSON
+}
+
+/// Flux produits d'une régie. L'URL contient généralement la clé d'API ou le
+/// jeton fourni par la régie : elle n'est jamais exposée côté public.
+model ProductFeed {
+  id      String           @id @default(cuid())
+  name    String
+  network AffiliateNetwork
+  format  FeedFormat
+  url     String
+
+  enabled Boolean @default(true)
+
+  /// Surcharge du mapping de colonnes par défaut du réseau, quand un
+  /// annonceur nomme ses colonnes différemment.
+  /// { "externalId": "...", "name": "...", "price": "...", ... }
+  mapping Json?
+
+  /// Chemin vers le tableau d'articles pour les formats XML/JSON
+  /// (ex. "products.product"). Vide = détection automatique.
+  itemsPath String?
+
+  lastSyncAt      DateTime?
+  lastSyncOk      Boolean?
+  lastSyncMessage String?
+  lastItemCount   Int?
+  lastMatchedCount Int?
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 enum RawSourceStatus {
   PENDING
   PROCESSED
@@ -99,6 +146,18 @@ model Product {
   estimatedCostCents   Int?
   estimatedMarginPct   Float?
 
+  /// Date du dernier relevé de prix (flux régie ou saisie manuelle). Le prix
+  /// n'est affiché publiquement que s'il est suffisamment récent.
+  priceUpdatedAt DateTime?
+  currency       String    @default("EUR")
+  inStock        Boolean?
+
+  /// Rattachement à un flux de régie : `externalId` est l'identifiant du
+  /// produit chez l'annonceur (SKU, merchant_product_id, EAN...).
+  feedId     String?
+  feed       ProductFeed? @relation(fields: [feedId], references: [id], onDelete: SetNull)
+  externalId String?
+
   affiliateUrl String?
 
   status              ProductStatus @default(SPOTTED)
@@ -119,6 +178,7 @@ model Product {
 
   @@index([status])
   @@index([category])
+  @@index([feedId, externalId])
 }
 
 /// Historique des métriques d'engagement dans le temps, pour distinguer
