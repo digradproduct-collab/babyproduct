@@ -4,6 +4,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductGallery } from "@/components/ProductGallery";
+import { StoryBlock } from "@/components/StoryBlock";
 import { FaqAccordion } from "@/components/FaqAccordion";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { PromoCountdownBar } from "@/components/PromoCountdownBar";
@@ -73,6 +74,11 @@ export default async function ProductDetailPage({
   const clicUrl = `/api/clic/${product.id}?source=fiche-produit`;
 
   const featuredTestimonial = [...testimonials].sort((a, b) => b.rating - a.rating)[0] ?? null;
+
+  const storyImages = images.slice(1);
+  const storyBlocks = product.highlights
+    .slice(0, storyImages.length)
+    .map((headline, i) => ({ image: storyImages[i], headline }));
 
   return (
     <>
@@ -187,13 +193,29 @@ export default async function ProductDetailPage({
           </FadeIn>
         </div>
 
+        {storyBlocks.length > 0 && (
+          <div className="mt-20 flex flex-col gap-16">
+            {storyBlocks.map((block, i) => (
+              <FadeIn key={block.image}>
+                <StoryBlock
+                  image={block.image}
+                  alt={`${product.name} — ${block.headline}`}
+                  headline={block.headline}
+                  text={product.description ?? block.headline}
+                  reverse={i % 2 === 1}
+                />
+              </FadeIn>
+            ))}
+          </div>
+        )}
+
         {product.highlights.length >= 2 && (
           <FadeIn>
-            <section className="mt-16">
-              <h2 className="font-display text-xl text-ink">
+            <section className="mt-20 flex flex-col gap-8 lg:flex-row lg:items-center">
+              <h2 className="font-display text-2xl text-terracotta-700 lg:w-1/2">
                 Pourquoi choisir {product.name}
               </h2>
-              <div className="mt-6 overflow-hidden rounded-2xl bg-cream-100">
+              <div className="overflow-hidden rounded-2xl bg-cream-100 lg:w-1/2">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="bg-cream-300">
