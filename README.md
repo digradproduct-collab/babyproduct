@@ -133,13 +133,28 @@ curl -X POST https://votre-domaine.fr/api/cron/send-newsletter \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
 
-## Tracking
+## Tracking & conversion par source
 
+L'objectif principal : savoir, pour chaque produit, combien de visiteurs viennent de chaque
+source (TikTok organique, publicité Instagram, Google Ads...) et combien convertissent en clic
+vers l'offre.
+
+- **Attribution** : quand un visiteur arrive avec des paramètres `utm_source`, `utm_medium`,
+  `utm_campaign` dans l'URL (ex. lien en bio TikTok), ils sont mémorisés dans un cookie
+  (`ck_utm`, 30 jours) par `PageViewTracker`. Cette attribution est ensuite rattachée à toutes
+  les vues de page et à un éventuel clic affilié pendant la même visite, même si le visiteur
+  navigue vers d'autres pages avant de cliquer.
+- **Générateur de lien** : sur chaque fiche produit validée (`/admin/produits/[id]`), un
+  générateur crée un lien trackable (`.../produits/mon-produit?utm_source=tiktok&utm_medium=organic`)
+  à copier dans une bio ou une publicité.
 - **Clics affiliés** : chaque bouton « Voir l'offre » pointe vers `/api/clic/[productId]`, qui
-  enregistre le clic (`Click`) puis redirige vers le lien d'affiliation réel.
-- **Vues de page** : le composant `PageViewTracker` (public) envoie un événement à
-  `/api/pageview` à chaque navigation.
-- **Dashboard** : `/admin/analytics` — vues, clics, taux de clic, top produits, top pages.
+  enregistre le clic (`Click` : produit, contexte sur le site, source utm) puis redirige vers le
+  lien d'affiliation réel.
+- **Vues de page** : `PageViewTracker` envoie un événement à `/api/pageview` à chaque navigation ;
+  les vues de fiches produits sont rattachées au produit (`PageView.productId`).
+- **Dashboard** : `/admin/analytics` — deux tableaux clés : performance globale par source
+  (`utm_source`), et conversion détaillée par produit × par source (vues, clics, taux de
+  conversion), pour savoir précisément quel produit + quelle source fonctionne.
 
 ## Transparence affiliation
 

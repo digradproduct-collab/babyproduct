@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { ATTRIBUTION_COOKIE, readAttributionFromCookie } from "@/lib/attribution";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ productId: string }> },
 ) {
   const { productId } = await params;
-  const source = request.nextUrl.searchParams.get("source");
+  const context = request.nextUrl.searchParams.get("source");
+  const attribution = readAttributionFromCookie(request.cookies.get(ATTRIBUTION_COOKIE)?.value);
 
   const product = await db.product.findUnique({ where: { id: productId } });
 
@@ -17,7 +19,10 @@ export async function GET(
   await db.click.create({
     data: {
       productId: product.id,
-      source,
+      context,
+      utmSource: attribution?.utmSource,
+      utmMedium: attribution?.utmMedium,
+      utmCampaign: attribution?.utmCampaign,
       referrer: request.headers.get("referer"),
       userAgent: request.headers.get("user-agent"),
     },

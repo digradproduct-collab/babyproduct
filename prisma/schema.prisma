@@ -104,8 +104,9 @@ model Product {
   updatedAt   DateTime  @updatedAt
   validatedAt DateTime?
 
-  metrics ProductMetricSnapshot[]
-  clicks  Click[]
+  metrics   ProductMetricSnapshot[]
+  clicks    Click[]
+  pageViews PageView[]
 
   @@index([status])
   @@index([category])
@@ -127,25 +128,43 @@ model ProductMetricSnapshot {
   @@index([productId, capturedAt])
 }
 
+/// Un clic vers l'offre d'affiliation. `context` = où sur le site (fiche
+/// produit, catégorie...) ; les champs `utm*` = d'où vient le visiteur à
+/// l'origine (réseau social organique, campagne pub...), reconstitués depuis
+/// le cookie d'attribution posé au premier atterrissage sur le site.
 model Click {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  source    String?
-  referrer  String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  context     String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  referrer    String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
 
   @@index([productId, createdAt])
+  @@index([utmSource, createdAt])
 }
 
+/// Une vue de page publique. `productId` est renseigné quand la page est une
+/// fiche produit, pour pouvoir croiser vues → clics → conversion par produit
+/// et par source d'acquisition (utm*).
 model PageView {
-  id        String   @id @default(cuid())
-  path      String
-  source    String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  path        String
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  referrer    String?
+  createdAt   DateTime @default(now())
 
   @@index([path, createdAt])
+  @@index([productId, createdAt])
+  @@index([utmSource, createdAt])
 }
 
 model NewsletterSubscriber {

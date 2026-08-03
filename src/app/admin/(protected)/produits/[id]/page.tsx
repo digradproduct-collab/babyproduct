@@ -8,10 +8,12 @@ import {
   updateProductStatus,
 } from "@/app/admin/actions";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { LinkBuilder } from "@/components/admin/LinkBuilder";
 import { STATUS_COLORS, STATUS_LABELS } from "@/lib/labels";
 import type { ProductStatus } from "@/generated/prisma/client";
 
 const STATUS_FLOW: ProductStatus[] = ["SPOTTED", "TESTING", "VALIDATED", "REJECTED"];
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export default async function ProductDetailPage({
   params,
@@ -94,6 +96,12 @@ export default async function ProductDetailPage({
             <span>Validé le {product.validatedAt.toLocaleDateString("fr-FR")}</span>
           )}
         </div>
+
+        {product.status === "VALIDATED" && (
+          <div className="mt-4">
+            <LinkBuilder productUrl={`${siteUrl}/produits/${product.slug}`} />
+          </div>
+        )}
       </section>
 
       <section className="mt-6 rounded-2xl bg-cream-100 p-6">
