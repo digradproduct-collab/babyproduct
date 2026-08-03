@@ -40,7 +40,7 @@ export function StickyBuyBar({
               href={ctaUrl}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="shrink-0 rounded-full bg-terracotta-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-terracotta-700"
+              className="btn-shine shrink-0 bg-terracotta-600 px-5 py-2.5 text-sm text-white hover:bg-terracotta-700"
             >
               Voir l&apos;offre
             </a>

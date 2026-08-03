@@ -62,14 +62,14 @@ export function Hero() {
           <MagneticButton
             as="a"
             href="#top-produits"
-            className="inline-block rounded-full bg-terracotta-600 px-6 py-3 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(194,86,64,0.55)] transition-colors hover:bg-terracotta-700"
+            className="btn-shine inline-block bg-terracotta-600 px-6 py-3 text-white shadow-lg transition-colors hover:bg-terracotta-700"
           >
             Voir le top de la semaine
           </MagneticButton>
           <MagneticButton
             as="a"
             href="#newsletter"
-            className="inline-block rounded-full border border-terracotta-500 px-6 py-3 font-semibold text-terracotta-700 transition-colors hover:bg-terracotta-100"
+            className="btn-shine inline-block border border-terracotta-500 px-6 py-3 text-terracotta-800 transition-colors hover:bg-terracotta-100"
           >
             Recevoir le top 5
           </MagneticButton>

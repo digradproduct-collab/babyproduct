@@ -111,3 +111,85 @@ body {
   -webkit-background-clip: text;
   color: transparent;
 }
+
+/*
+  Thème "Shine" — pages publiques (accueil, catégories, fiches produit).
+  Reprend exactement la palette et les proportions de la maquette Stitch de
+  référence : fond blanc, accent or unique #f3c151, titres en sans-serif
+  extra-gras, boutons carrés (pas de pilule) en majuscules. Ne s'applique
+  qu'aux composants sous ce scope — l'admin garde le thème "Organic" d'origine.
+*/
+.theme-shine {
+  --color-cream-100: #ffffff;
+  --color-cream-200: #f9fafb;
+  --color-cream-300: #f3f4f6;
+  --color-cream-400: #e5e7eb;
+  --color-cream-500: #d1d5db;
+  --color-cream-600: #9ca3af;
+  --color-cream-700: #6b7280;
+  --color-cream-800: #4b5563;
+  --color-cream-900: #1f2937;
+
+  --color-terracotta-100: #fef6e2;
+  --color-terracotta-200: #fdecc4;
+  --color-terracotta-300: #fbdd93;
+  --color-terracotta-400: #f7cf78;
+  --color-terracotta-500: #f3c151;
+  --color-terracotta-600: #f3c151;
+  --color-terracotta-700: #e0b040;
+  --color-terracotta-800: #b8892b;
+  --color-terracotta-900: #7a5c1c;
+
+  --color-sage-100: #f0fdf4;
+  --color-sage-200: #dcfce7;
+  --color-sage-300: #bbf7d0;
+  --color-sage-400: #86efac;
+  --color-sage-500: #4ade80;
+  --color-sage-600: #22c55e;
+  --color-sage-700: #16a34a;
+  --color-sage-800: #15803d;
+  --color-sage-900: #14532d;
+
+  --color-gold-400: #fde68a;
+  --color-gold-500: #f3c151;
+  --color-gold-600: #f3c151;
+
+  --color-berry-400: #d1d5db;
+  --color-berry-500: #9ca3af;
+  --color-berry-600: #6b7280;
+
+  --color-ink: #111827;
+  --color-ink-soft: #6b7280;
+
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  --font-display: var(--font-figtree);
+}
+
+.theme-shine .font-display {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.theme-shine .text-gold-shimmer {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--color-terracotta-700);
+  font-style: italic;
+  letter-spacing: 0.03em;
+}
+
+.theme-shine .btn-shine {
+  border-radius: var(--radius-xl);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.theme-shine .texture-grain::after {
+  opacity: 0;
+}

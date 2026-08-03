@@ -11,7 +11,7 @@ export function ProductCard({ product }: { product: Product }) {
     <motion.div
       whileHover={{ y: -6 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-cream-100 shadow-[0_2px_10px_-4px_rgba(54,42,34,0.12)] transition-shadow duration-300 hover:shadow-[0_20px_40px_-16px_rgba(194,86,64,0.35)]"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-cream-300 bg-cream-100 shadow-[0_2px_10px_-4px_rgba(54,42,34,0.08)] transition-shadow duration-300 hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.15)]"
     >
       <Link href={`/produits/${product.slug}`} className="block">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream-300">
@@ -55,7 +55,7 @@ export function ProductCard({ product }: { product: Product }) {
             href={`/api/clic/${product.id}?source=${CATEGORY_SLUGS[product.category]}`}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className="rounded-full bg-terracotta-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-terracotta-700"
+            className="btn-shine bg-terracotta-600 px-4 py-2 text-xs text-white transition-colors hover:bg-terracotta-700"
           >
             Voir l&apos;offre
           </a>

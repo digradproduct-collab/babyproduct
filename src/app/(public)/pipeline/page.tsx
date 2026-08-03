@@ -29,7 +29,7 @@ export default async function PublicPipelinePage() {
         actuellement, sans détails commerciaux (fournisseur, marge, coûts).
       </p>
 
-      <div className="mt-8 overflow-hidden rounded-2xl bg-cream-100">
+      <div className="mt-8 overflow-hidden rounded-2xl border border-cream-300 bg-cream-100">
         <table className="w-full text-left text-sm">
           <thead className="bg-cream-300 text-ink-soft">
             <tr>

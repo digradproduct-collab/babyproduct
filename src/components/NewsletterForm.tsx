@@ -32,12 +32,12 @@ export function NewsletterForm() {
         name="email"
         required
         placeholder="votre@email.fr"
-        className="flex-1 rounded-full border border-cream-500 bg-white px-4 py-2.5 text-sm outline-none focus:border-terracotta-500"
+        className="flex-1 rounded-lg border border-cream-500 bg-white px-4 py-2.5 text-sm outline-none focus:border-terracotta-500"
       />
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-full bg-terracotta-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-terracotta-700 disabled:opacity-60"
+        className="btn-shine bg-terracotta-600 px-5 py-2.5 text-sm text-white transition hover:bg-terracotta-700 disabled:opacity-60"
       >
         {status === "loading" ? "Envoi..." : "Je m'inscris"}
       </button>

@@ -172,7 +172,7 @@ export default async function ProductDetailPage({
               href={clicUrl}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="mt-8 inline-block rounded-full bg-terracotta-600 px-6 py-3 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(194,86,64,0.55)] transition-colors hover:bg-terracotta-700"
+              className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg text-white shadow-lg transition-colors hover:bg-terracotta-700"
             >
               Voir l&apos;offre
             </MagneticButton>
@@ -215,7 +215,7 @@ export default async function ProductDetailPage({
               <h2 className="font-display text-2xl text-terracotta-700 lg:w-1/2">
                 Pourquoi choisir {product.name}
               </h2>
-              <div className="overflow-hidden rounded-2xl bg-cream-100 lg:w-1/2">
+              <div className="overflow-hidden rounded-2xl border border-cream-300 bg-cream-100 lg:w-1/2">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="bg-cream-300">
@@ -245,7 +245,7 @@ export default async function ProductDetailPage({
               <h2 className="font-display text-xl text-ink">Avis clients</h2>
               <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {testimonials.map((t) => (
-                  <div key={`${t.author}-${t.quote.slice(0, 10)}`} className="rounded-2xl bg-cream-100 p-5">
+                  <div key={`${t.author}-${t.quote.slice(0, 10)}`} className="rounded-2xl border border-cream-300 bg-cream-100 p-5">
                     <p className="text-gold-600">{"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}</p>
                     <p className="mt-2 text-sm text-ink">&ldquo;{t.quote}&rdquo;</p>
                     <p className="mt-3 text-xs font-semibold text-ink-soft">{t.author}</p>
