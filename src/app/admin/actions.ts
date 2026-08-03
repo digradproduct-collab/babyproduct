@@ -10,6 +10,7 @@ import { scoreRawSource as runLlmScoring } from "@/lib/scoring";
 import { uploadProductImage } from "@/lib/supabase";
 import { sendWeeklyDigest } from "@/lib/email";
 import { getDemoProducts } from "@/lib/demoProducts";
+import { parseFaqText, parseLines, parseTestimonialsText } from "@/lib/productContent";
 import type { Category, ProductStatus, SourcePlatform } from "@/generated/prisma/client";
 
 async function requireAdmin() {
@@ -30,7 +31,19 @@ const productSchema = z.object({
   estimatedCost: z.string().optional(),
   affiliateUrl: z.string().optional(),
   tags: z.string().optional(),
+  rating: z.string().optional(),
+  imageUrls: z.string().optional(),
+  highlights: z.string().optional(),
+  faq: z.string().optional(),
+  testimonials: z.string().optional(),
 });
+
+function toRating(value: string | undefined) {
+  if (!value) return null;
+  const n = Number.parseFloat(value);
+  if (Number.isNaN(n)) return null;
+  return Math.min(5, Math.max(0, n));
+}
 
 function toCents(value: string | undefined) {
   if (!value) return null;
@@ -92,6 +105,11 @@ export async function createProduct(formData: FormData) {
       tags: raw.tags
         ? raw.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [],
+      rating: toRating(raw.rating),
+      imageUrls: raw.imageUrls ? parseLines(raw.imageUrls) : [],
+      highlights: raw.highlights ? parseLines(raw.highlights) : [],
+      faq: raw.faq ? parseFaqText(raw.faq) : undefined,
+      testimonials: raw.testimonials ? parseTestimonialsText(raw.testimonials) : undefined,
     },
   });
 
@@ -125,6 +143,11 @@ export async function updateProduct(id: string, formData: FormData) {
       tags: raw.tags
         ? raw.tags.split(",").map((t) => t.trim()).filter(Boolean)
         : [],
+      rating: toRating(raw.rating),
+      imageUrls: raw.imageUrls ? parseLines(raw.imageUrls) : [],
+      highlights: raw.highlights ? parseLines(raw.highlights) : [],
+      faq: raw.faq ? parseFaqText(raw.faq) : undefined,
+      testimonials: raw.testimonials ? parseTestimonialsText(raw.testimonials) : undefined,
     },
   });
 

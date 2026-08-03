@@ -1,4 +1,5 @@
 import type { Category, ProductStatus } from "@/generated/prisma/client";
+import type { FaqItem, Testimonial } from "@/lib/productContent";
 
 export type DemoProduct = {
   slug: string;
@@ -6,6 +7,10 @@ export type DemoProduct = {
   category: Category;
   description: string;
   imageUrl?: string;
+  imageUrls?: string[];
+  highlights?: string[];
+  faq?: FaqItem[];
+  testimonials?: Testimonial[];
   status: ProductStatus;
   viralScore: number;
   viralScoreRationale?: string;
@@ -103,8 +108,49 @@ export function getDemoProducts(): DemoProduct[] {
       name: "Doudou Lapin Brodé Personnalisable",
       category: "DOUDOU",
       description:
-        "Doudou en coton bio, prénom brodé à la main, vu en boucle sur les réseaux pour ses finitions soignées et son toucher tout doux.",
+        "Doudou en coton bio, prénom brodé à la main, vu en boucle sur les réseaux pour ses finitions soignées et son toucher tout doux. Le compagnon idéal pour accompagner bébé du berceau à la grande section.",
       imageUrl: "https://images.unsplash.com/photo-1584645327804-a5b4d0455c1d?w=800",
+      imageUrls: [
+        "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=800",
+        "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=800",
+      ],
+      highlights: [
+        "100% coton biologique certifié OEKO-TEX, doux pour la peau sensible de bébé",
+        "Prénom brodé à la main — un cadeau de naissance unique",
+        "Lavable en machine à 30°C, résiste aux lavages répétés",
+        "Format compact (25 cm) idéal pour la poussette, le lit ou en voyage",
+      ],
+      faq: [
+        {
+          question: "À partir de quel âge peut-on l'offrir ?",
+          answer: "Dès la naissance — le coton bio et les petites dimensions en font un doudou adapté aux nouveau-nés comme aux plus grands.",
+        },
+        {
+          question: "Combien de temps pour recevoir la personnalisation ?",
+          answer: "Comptez 5 à 8 jours ouvrés pour la broderie du prénom, puis les délais de livraison habituels du fournisseur.",
+        },
+        {
+          question: "Le doudou passe-t-il en machine ?",
+          answer: "Oui, lavage en machine à 30°C conseillé, sans sèche-linge pour préserver la broderie.",
+        },
+      ],
+      testimonials: [
+        {
+          author: "Camille R.",
+          rating: 5,
+          quote: "Ma fille ne s'en sépare plus depuis le premier jour, la qualité de la broderie est impeccable.",
+        },
+        {
+          author: "Thomas L.",
+          rating: 5,
+          quote: "Commandé pour une naissance, l'emballage et la personnalisation ont fait leur effet. Très doux au toucher.",
+        },
+        {
+          author: "Sarah K.",
+          rating: 4,
+          quote: "Beau produit, juste un peu plus long à recevoir que prévu à cause de la personnalisation.",
+        },
+      ],
       status: "VALIDATED",
       viralScore: 92,
       rating: 4.9,

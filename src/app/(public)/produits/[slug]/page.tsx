@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductGallery } from "@/components/ProductGallery";
+import { FaqAccordion } from "@/components/FaqAccordion";
+import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { CATEGORY_LABELS, CATEGORY_SLUGS } from "@/lib/labels";
+import { CATEGORY_LABELS, CATEGORY_SLUGS, PLATFORM_LABELS } from "@/lib/labels";
+import { isFaqArray, isTestimonialArray } from "@/lib/productContent";
 
 export async function generateMetadata({
   params,
@@ -52,8 +55,26 @@ export default async function ProductDetailPage({
     take: 3,
   });
 
+  const images = [product.imageUrl, ...product.imageUrls].filter(
+    (url): url is string => !!url,
+  );
+  const faq = isFaqArray(product.faq) ? product.faq : [];
+  const testimonials = isTestimonialArray(product.testimonials) ? product.testimonials : [];
+  const avgTestimonialRating =
+    testimonials.length > 0
+      ? testimonials.reduce((sum, t) => sum + t.rating, 0) / testimonials.length
+      : null;
+  const displayRating = product.rating ?? avgTestimonialRating;
+  const priceLabel =
+    product.estimatedPriceCents != null
+      ? `${(product.estimatedPriceCents / 100).toFixed(2)} €`
+      : null;
+  const clicUrl = `/api/clic/${product.id}?source=fiche-produit`;
+
   return (
     <main className="mx-auto max-w-5xl px-6 py-14">
+      <StickyBuyBar name={product.name} priceLabel={priceLabel} ctaUrl={clicUrl} />
+
       <nav className="text-sm text-ink-soft">
         <Link href={`/categories/${CATEGORY_SLUGS[product.category]}`} className="hover:text-terracotta-600">
           {CATEGORY_LABELS[product.category]}
@@ -62,33 +83,43 @@ export default async function ProductDetailPage({
 
       <div className="mt-4 grid grid-cols-1 gap-10 md:grid-cols-2">
         <FadeIn>
-          <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream-300 shadow-[0_20px_50px_-24px_rgba(54,42,34,0.35)]">
-            {product.imageUrl ? (
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                fill
-                className="object-cover saturate-[0.85]"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center font-display text-cream-600">
-                Câlin Kids
-              </div>
-            )}
-          </div>
+          <ProductGallery images={images} alt={product.name} />
         </FadeIn>
 
         <FadeIn delay={0.1}>
-          <h1 className="font-display text-3xl text-ink">{product.name}</h1>
+          {product.sourcePlatform && product.sourcePlatform !== "AUTRE" && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sage-800">
+              🔥 Vu sur {PLATFORM_LABELS[product.sourcePlatform]}
+            </span>
+          )}
+
+          <h1 className="mt-3 font-display text-3xl text-ink">{product.name}</h1>
+
           <div className="mt-2 flex items-center gap-3 text-sm text-ink-soft">
-            {product.rating != null && <span className="text-gold-600">★ {product.rating.toFixed(1)}</span>}
-            {product.estimatedPriceCents != null && (
-              <span>{(product.estimatedPriceCents / 100).toFixed(2)} €</span>
+            {displayRating != null && (
+              <span className="flex items-center gap-1 text-gold-600">
+                {"★".repeat(Math.round(displayRating))}
+                {"☆".repeat(5 - Math.round(displayRating))}
+                <span className="text-ink-soft">
+                  {displayRating.toFixed(1)}
+                  {testimonials.length > 0 && ` (${testimonials.length} avis)`}
+                </span>
+              </span>
             )}
+            {priceLabel && <span className="font-semibold text-ink">{priceLabel}</span>}
           </div>
 
-          {product.description && (
-            <p className="mt-5 text-ink-soft">{product.description}</p>
+          {product.description && <p className="mt-5 text-ink-soft">{product.description}</p>}
+
+          {product.highlights.length > 0 && (
+            <ul className="mt-5 flex flex-col gap-2">
+              {product.highlights.map((h) => (
+                <li key={h} className="flex items-start gap-2 text-sm text-ink">
+                  <span className="mt-0.5 text-sage-600">✓</span>
+                  {h}
+                </li>
+              ))}
+            </ul>
           )}
 
           {product.tags.length > 0 && (
@@ -103,7 +134,7 @@ export default async function ProductDetailPage({
 
           <MagneticButton
             as="a"
-            href={`/api/clic/${product.id}?source=fiche-produit`}
+            href={clicUrl}
             target="_blank"
             rel="noopener noreferrer sponsored"
             className="mt-8 inline-block rounded-full bg-terracotta-600 px-6 py-3 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(194,86,64,0.55)] transition-colors hover:bg-terracotta-700"
@@ -113,8 +144,47 @@ export default async function ProductDetailPage({
           <p className="mt-2 text-xs text-ink-soft">
             Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous.
           </p>
+
+          {product.sourceUrl && (
+            <a
+              href={product.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 block text-xs text-ink-soft underline hover:text-terracotta-600"
+            >
+              Voir la publication d&apos;origine →
+            </a>
+          )}
         </FadeIn>
       </div>
+
+      {testimonials.length > 0 && (
+        <FadeIn>
+          <section className="mt-16">
+            <h2 className="font-display text-xl text-ink">Avis clients</h2>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {testimonials.map((t) => (
+                <div key={`${t.author}-${t.quote.slice(0, 10)}`} className="rounded-2xl bg-cream-100 p-5">
+                  <p className="text-gold-600">{"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}</p>
+                  <p className="mt-2 text-sm text-ink">&ldquo;{t.quote}&rdquo;</p>
+                  <p className="mt-3 text-xs font-semibold text-ink-soft">{t.author}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </FadeIn>
+      )}
+
+      {faq.length > 0 && (
+        <FadeIn>
+          <section className="mt-16">
+            <h2 className="font-display text-xl text-ink">Questions fréquentes</h2>
+            <div className="mt-6">
+              <FaqAccordion items={faq} />
+            </div>
+          </section>
+        </FadeIn>
+      )}
 
       {alternatives.length > 0 && (
         <section className="mt-16">

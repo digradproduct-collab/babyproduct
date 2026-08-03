@@ -133,6 +133,21 @@ curl -X POST https://votre-domaine.fr/api/cron/send-newsletter \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
 
+## Fiche produit publique (landing page)
+
+Chaque fiche produit (`/produits/[slug]`) est une vraie page de vente, pas une simple fiche
+catalogue : galerie photo (clic pour changer d'image), badge « Vu sur TikTok/Instagram »
+(si une source est renseignée), points forts, avis clients, FAQ en accordéon, et une barre
+d'achat collante en bas d'écran sur mobile au scroll. Tout est optionnel et s'édite depuis
+`/admin/produits/[id]`, section « Contenu de la fiche publique » :
+
+- **Photos supplémentaires** : une URL par ligne, en plus de la photo principale.
+- **Points forts** : un bénéfice par ligne (icône ✓ automatique).
+- **FAQ** : question sur une ligne, réponse sur la/les lignes suivantes, ligne vide entre
+  chaque question.
+- **Avis clients** : `Auteur | Note sur 5 | Avis` — un par ligne. Uniquement des avis
+  authentiques que vous avez réellement reçus (jamais de faux avis).
+
 ## Tracking & conversion par source
 
 L'objectif principal : savoir, pour chaque produit, combien de visiteurs viennent de chaque

@@ -78,6 +78,12 @@ model Product {
   category    Category @default(AUTRE)
   description String?
   imageUrl    String?
+  imageUrls   String[] @default([])
+  highlights  String[] @default([])
+  /// [{ "question": string, "answer": string }]
+  faq         Json?
+  /// [{ "author": string, "rating": number, "quote": string }]
+  testimonials Json?
 
   sourceUrl      String?
   sourcePlatform SourcePlatform?
