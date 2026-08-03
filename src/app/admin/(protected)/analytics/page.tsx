@@ -1,31 +1,50 @@
 import { db } from "@/lib/db";
 import { sendWeeklyDigestNow } from "@/app/admin/actions";
-import { getConversionByProductAndSource, aggregateBySource } from "@/lib/conversion";
+import { getConversionByProductAndSource } from "@/lib/conversion";
+import { getDailyTrend, getPeriodComparison, getSourceTotals } from "@/lib/timeseries";
+import { DateRangePicker } from "@/components/admin/DateRangePicker";
+import { StatTile } from "@/components/admin/charts/StatTile";
+import { TrendChart } from "@/components/admin/charts/TrendChart";
+import { SourceBarChart } from "@/components/admin/charts/SourceBarChart";
+
+const VALID_RANGES = [7, 30, 90];
 
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ newsletterSent?: string; newsletterError?: string }>;
+  searchParams: Promise<{
+    newsletterSent?: string;
+    newsletterError?: string;
+    range?: string;
+  }>;
 }) {
-  const { newsletterSent, newsletterError } = await searchParams;
+  const { newsletterSent, newsletterError, range } = await searchParams;
+  const days = VALID_RANGES.includes(Number(range)) ? Number(range) : 30;
+  const since = new Date();
+  since.setUTCHours(0, 0, 0, 0);
+  since.setUTCDate(since.getUTCDate() - (days - 1));
 
-  const [totalViews, totalClicks, subscriberCount, conversionRows] = await Promise.all([
-    db.pageView.count(),
-    db.click.count(),
-    db.newsletterSubscriber.count(),
-    getConversionByProductAndSource(),
-  ]);
-
-  const sourceRows = aggregateBySource(conversionRows);
-  const overallConversion = totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0";
+  const [subscriberCount, comparison, dailyTrend, sourceTotals, conversionRows] =
+    await Promise.all([
+      db.newsletterSubscriber.count(),
+      getPeriodComparison(days),
+      getDailyTrend(days),
+      getSourceTotals(days),
+      getConversionByProductAndSource(since),
+    ]);
 
   return (
     <div>
-      <h1 className="font-display text-3xl text-ink">Analytics</h1>
-      <p className="mt-1 text-ink-soft">
-        Vues et clics affiliés par produit et par source d&apos;acquisition (organique réseaux
-        sociaux, publicité...), pour savoir ce qui convertit vraiment.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl text-ink">Analytics</h1>
+          <p className="mt-1 text-ink-soft">
+            Vues et clics affiliés par produit et par source d&apos;acquisition, pour savoir ce
+            qui convertit vraiment.
+          </p>
+        </div>
+        <DateRangePicker current={days} />
+      </div>
 
       {newsletterSent && (
         <p className="mt-4 rounded-xl bg-sage-200 px-4 py-3 text-sm text-sage-800">
@@ -37,6 +56,45 @@ export default async function AnalyticsPage({
           Newsletter non envoyée : {newsletterError}
         </p>
       )}
+
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Vues fiche produit"
+          value={comparison.views.value}
+          deltaPct={comparison.views.deltaPct}
+          sparkline={dailyTrend.map((d) => d.views)}
+        />
+        <StatTile
+          label="Clics affiliés"
+          value={comparison.clicks.value}
+          deltaPct={comparison.clicks.deltaPct}
+          sparkline={dailyTrend.map((d) => d.clicks)}
+        />
+        <StatTile
+          label="Taux de conversion"
+          value={comparison.conversionRate.value}
+          suffix="%"
+          deltaPct={comparison.conversionRate.deltaPct}
+        />
+        <StatTile
+          label="Nouveaux abonnés"
+          value={comparison.newSubscribers.value}
+          deltaPct={comparison.newSubscribers.deltaPct}
+        />
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <TrendChart
+          title="Vues fiche produit / jour"
+          data={dailyTrend.map((d) => ({ date: d.date, value: d.views }))}
+          color="var(--color-terracotta-600)"
+        />
+        <TrendChart
+          title="Clics affiliés / jour"
+          data={dailyTrend.map((d) => ({ date: d.date, value: d.clicks }))}
+          color="var(--color-chart-blue)"
+        />
+      </div>
 
       <section className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-cream-100 p-5">
         <div>
@@ -50,55 +108,15 @@ export default async function AnalyticsPage({
         </form>
       </section>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl bg-cream-100 p-5">
-          <p className="text-xs font-semibold uppercase text-ink-soft">Vues de page (site entier)</p>
-          <p className="mt-1 font-display text-3xl text-ink">{totalViews}</p>
-        </div>
-        <div className="rounded-2xl bg-cream-100 p-5">
-          <p className="text-xs font-semibold uppercase text-ink-soft">Clics affiliés</p>
-          <p className="mt-1 font-display text-3xl text-ink">{totalClicks}</p>
-        </div>
-        <div className="rounded-2xl bg-cream-100 p-5">
-          <p className="text-xs font-semibold uppercase text-ink-soft">Taux de clic global</p>
-          <p className="mt-1 font-display text-3xl text-ink">{overallConversion}%</p>
-        </div>
-      </div>
-
-      <section className="mt-8 rounded-2xl bg-cream-100 p-6">
-        <h2 className="font-display text-lg text-ink">Performance par source</h2>
+      <section className="mt-6 rounded-2xl bg-cream-100 p-6">
+        <h2 className="font-display text-lg text-ink">Taux de conversion par source</h2>
         <p className="mt-1 text-sm text-ink-soft">
           Toutes fiches produits confondues — comparez l&apos;organique réseaux sociaux à vos
-          campagnes publicitaires.
+          campagnes publicitaires sur la période sélectionnée.
         </p>
-        <table className="mt-4 w-full text-left text-sm">
-          <thead className="text-ink-soft">
-            <tr>
-              <th className="py-2">Source (utm_source)</th>
-              <th className="py-2">Vues fiche produit</th>
-              <th className="py-2">Clics</th>
-              <th className="py-2">Conversion</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sourceRows.map((s) => (
-              <tr key={s.source} className="border-t border-cream-300">
-                <td className="py-2 font-medium text-ink">{s.source}</td>
-                <td className="py-2 text-ink-soft">{s.views}</td>
-                <td className="py-2 text-ink-soft">{s.clicks}</td>
-                <td className="py-2 text-ink-soft">{s.conversionRate}%</td>
-              </tr>
-            ))}
-            {sourceRows.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-6 text-center text-ink-soft">
-                  Pas encore de données. Ajoutez <code>?utm_source=tiktok&amp;utm_medium=organic</code>{" "}
-                  à vos liens partagés pour commencer à mesurer.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <div className="mt-4">
+          <SourceBarChart data={sourceTotals} />
+        </div>
       </section>
 
       <section className="mt-6 rounded-2xl bg-cream-100 p-6">
@@ -107,35 +125,37 @@ export default async function AnalyticsPage({
           Pour chaque produit : combien de vues sa fiche a reçues depuis chaque source, et combien
           ont cliqué vers l&apos;offre.
         </p>
-        <table className="mt-4 w-full text-left text-sm">
-          <thead className="text-ink-soft">
-            <tr>
-              <th className="py-2">Produit</th>
-              <th className="py-2">Source</th>
-              <th className="py-2">Vues</th>
-              <th className="py-2">Clics</th>
-              <th className="py-2">Conversion</th>
-            </tr>
-          </thead>
-          <tbody>
-            {conversionRows.map((row) => (
-              <tr key={`${row.productId}-${row.source}`} className="border-t border-cream-300">
-                <td className="py-2 font-medium text-ink">{row.productName}</td>
-                <td className="py-2 text-ink-soft">{row.source}</td>
-                <td className="py-2 text-ink-soft">{row.views}</td>
-                <td className="py-2 text-ink-soft">{row.clicks}</td>
-                <td className="py-2 text-ink-soft">{row.conversionRate}%</td>
-              </tr>
-            ))}
-            {conversionRows.length === 0 && (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="text-ink-soft">
               <tr>
-                <td colSpan={5} className="py-6 text-center text-ink-soft">
-                  Pas encore de données.
-                </td>
+                <th className="py-2">Produit</th>
+                <th className="py-2">Source</th>
+                <th className="py-2">Vues</th>
+                <th className="py-2">Clics</th>
+                <th className="py-2">Conversion</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {conversionRows.map((row) => (
+                <tr key={`${row.productId}-${row.source}`} className="border-t border-cream-300">
+                  <td className="py-2 font-medium text-ink">{row.productName}</td>
+                  <td className="py-2 text-ink-soft">{row.source}</td>
+                  <td className="py-2 text-ink-soft">{row.views}</td>
+                  <td className="py-2 text-ink-soft">{row.clicks}</td>
+                  <td className="py-2 text-ink-soft">{row.conversionRate}%</td>
+                </tr>
+              ))}
+              {conversionRows.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-6 text-center text-ink-soft">
+                    Pas encore de données sur cette période.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );

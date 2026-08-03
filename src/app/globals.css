@@ -53,6 +53,11 @@
   --color-ink: #362a22;
   --color-ink-soft: #75655a;
 
+  /* Bleu — deuxième série pour les graphiques (identité), jamais utilisé
+     dans l'UI décorative. Validé CVD-safe avec terracotta-600 (ΔE 22.7+). */
+  --color-chart-blue: #2a78d6;
+  --color-chart-blue-soft: #cfe1f6;
+
   /* Radius généreux, organique */
   --radius-md: 0.75rem;
   --radius-lg: 1.25rem;
