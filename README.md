@@ -82,16 +82,18 @@ npm run dev
 5. Seuls les produits **Validé** apparaissent sur le site public (accueil, catégories, fiche
    produit).
 
-### Planifier le job d'analyse IA
+### Jobs planifiés
 
-`POST /api/cron/scan-candidates` (en-tête `Authorization: Bearer <CRON_SECRET>`) traite jusqu'à
-20 sources en attente. Planifiez-le quotidiennement avec :
+Déjà configurés automatiquement via `vercel.json` si déployé sur Vercel (avec `CRON_SECRET`
+défini dans les variables d'environnement — Vercel l'envoie alors automatiquement en en-tête
+`Authorization`) :
 
-- **Vercel Cron** (`vercel.json`) si déployé sur Vercel
-- **GitHub Actions** (`schedule` + `curl`)
-- Un service externe type cron-job.org
+- `GET/POST /api/cron/scan-candidates` — tous les jours à 6h17 UTC, traite jusqu'à 20 sources en
+  attente avec le scoring IA.
+- `GET/POST /api/cron/send-newsletter` — chaque lundi à 8h23 UTC, envoie le Top 5 de la semaine.
 
-Exemple `curl` :
+Pour un hébergement hors Vercel, déclenchez-les manuellement avec un cron externe (GitHub
+Actions, cron-job.org...) :
 
 ```bash
 curl -X POST https://votre-domaine.fr/api/cron/scan-candidates \
@@ -125,13 +127,10 @@ enregistrées en base).
 
 - **Email de bienvenue** : envoyé automatiquement à l'inscription.
 - **Top 5 hebdomadaire** : déclenché manuellement depuis `/admin/analytics` (bouton
-  « Envoyer le Top 5 maintenant »), ou automatiquement via un cron externe hebdomadaire sur
-  `POST /api/cron/send-newsletter` (même jeton `CRON_SECRET` que le scan IA) :
-
-```bash
-curl -X POST https://votre-domaine.fr/api/cron/send-newsletter \
-  -H "Authorization: Bearer $CRON_SECRET"
-```
+  « Envoyer le Top 5 maintenant »), ou automatiquement chaque lundi via Vercel Cron (voir
+  « Jobs planifiés » plus bas).
+- **Désabonnement** : chaque email contient un lien de désinscription unique et fonctionnel
+  (`/newsletter/desabonnement?token=...`), obligatoire légalement.
 
 ## Fiche produit publique (landing page)
 

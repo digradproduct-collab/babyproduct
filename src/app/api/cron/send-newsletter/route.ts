@@ -16,3 +16,6 @@ export async function POST(request: NextRequest) {
   const result = await sendWeeklyDigest();
   return NextResponse.json(result);
 }
+
+// Vercel Cron déclenche les tâches planifiées par une requête GET.
+export const GET = POST;

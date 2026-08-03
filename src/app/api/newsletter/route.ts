@@ -13,14 +13,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email invalide" }, { status: 400 });
   }
 
-  await db.newsletterSubscriber.upsert({
+  const subscriber = await db.newsletterSubscriber.upsert({
     where: { email: parsed.data.email },
     update: {},
     create: { email: parsed.data.email },
   });
 
   try {
-    await sendWelcomeEmail(parsed.data.email);
+    await sendWelcomeEmail(subscriber.email, subscriber.unsubscribeToken);
   } catch (error) {
     console.error("Échec de l'envoi de l'email de bienvenue", error);
   }

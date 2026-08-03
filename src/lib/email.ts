@@ -11,7 +11,11 @@ function getResend() {
   return new Resend(apiKey);
 }
 
-function emailShell(title: string, bodyHtml: string) {
+function unsubscribeUrl(token: string) {
+  return `${siteUrl}/newsletter/desabonnement?token=${token}`;
+}
+
+function emailShell(title: string, bodyHtml: string, unsubscribeToken: string) {
   return `
     <div style="background:#fbf4e9;padding:32px 16px;font-family:Georgia,serif;">
       <div style="max-width:520px;margin:0 auto;background:#fefcf8;border-radius:24px;padding:32px;">
@@ -21,13 +25,15 @@ function emailShell(title: string, bodyHtml: string) {
         <p style="margin-top:32px;font-size:12px;color:#75655a;">
           Câlin Kids — sélection de produits bébé &amp; enfants.
           <a href="${siteUrl}/mentions-legales" style="color:#75655a;">Mentions légales</a>
+          ·
+          <a href="${unsubscribeUrl(unsubscribeToken)}" style="color:#75655a;">Se désabonner</a>
         </p>
       </div>
     </div>
   `;
 }
 
-export async function sendWelcomeEmail(email: string) {
+export async function sendWelcomeEmail(email: string, unsubscribeToken: string) {
   const resend = getResend();
   if (!resend) return;
 
@@ -45,6 +51,7 @@ export async function sendWelcomeEmail(email: string) {
         padding:10px 20px;border-radius:999px;text-decoration:none;font-weight:bold;">
         Découvrir la sélection actuelle
       </a>`,
+      unsubscribeToken,
     ),
   });
 }
@@ -64,7 +71,7 @@ export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: strin
       orderBy: [{ isFeatured: "desc" }, { validatedAt: "desc" }],
       take: 5,
     }),
-    db.newsletterSubscriber.findMany({ select: { email: true } }),
+    db.newsletterSubscriber.findMany({ select: { email: true, unsubscribeToken: true } }),
   ]);
 
   if (topProducts.length === 0) return { sent: 0, skipped: "Aucun produit validé" };
@@ -83,17 +90,16 @@ export async function sendWeeklyDigest(): Promise<{ sent: number; skipped: strin
     )
     .join("");
 
-  const html = emailShell(
-    "Le Top 5 de la semaine",
-    `<div style="margin-top:8px;">${itemsHtml}</div>`,
-  );
-
   const { error } = await resend.batch.send(
     subscribers.map((s) => ({
       from: FROM_EMAIL,
       to: s.email,
       subject: "🌟 Le Top 5 de la semaine — Câlin Kids",
-      html,
+      html: emailShell(
+        "Le Top 5 de la semaine",
+        `<div style="margin-top:8px;">${itemsHtml}</div>`,
+        s.unsubscribeToken,
+      ),
     })),
   );
 
