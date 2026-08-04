@@ -15,6 +15,7 @@ import { CheckIcon, CrossIcon, SparkIcon } from "@/components/ui/Icon";
 import { CATEGORY_LABELS, CATEGORY_SLUGS, PLATFORM_LABELS } from "@/lib/labels";
 import { isFaqArray, isTestimonialArray } from "@/lib/productContent";
 import { publicPrice } from "@/lib/price";
+import { buyAction, deliveryEstimate } from "@/lib/fulfillment";
 
 export async function generateMetadata({
   params,
@@ -74,8 +75,10 @@ export default async function ProductDetailPage({
       : null;
   const displayRating = product.rating ?? avgTestimonialRating;
   const price = publicPrice(product);
-  const priceLabel = price.kind === "tracked" || price.kind === "indicative" ? price.label : null;
+  const priceLabel = price.kind === "stale" || price.kind === "none" ? null : price.label;
   const clicUrl = `/api/clic/${product.id}?source=fiche-produit`;
+  const action = buyAction(product);
+  const delivery = deliveryEstimate(product);
 
   const featuredTestimonial = [...testimonials].sort((a, b) => b.rating - a.rating)[0] ?? null;
 
@@ -96,7 +99,9 @@ export default async function ProductDetailPage({
           name={product.name}
           priceLabel={priceLabel}
           ctaUrl={clicUrl}
-          hasOffer={!!product.affiliateUrl}
+          ctaLabel={action.label}
+          isAffiliate={action.kind === "affiliate"}
+          disabled={action.kind === "out-of-stock"}
         />
 
         <nav className="text-sm text-ink-soft">
@@ -158,6 +163,9 @@ export default async function ProductDetailPage({
               <p className="mt-4 font-display text-3xl tabular-nums text-gold-800">{priceLabel}</p>
             )}
 
+            {price.kind === "firm" && delivery === null && (
+              <p className="mt-1 text-xs text-ink-soft">Prix TTC, hors frais de livraison.</p>
+            )}
             {price.kind === "tracked" && (
               <p className="mt-1 text-xs text-ink-soft">
                 Prix constaté le {price.checkedAt} chez le marchand — susceptible d&apos;avoir
@@ -175,7 +183,7 @@ export default async function ProductDetailPage({
               </p>
             )}
 
-            {product.inStock === false && (
+            {product.inStock === false && action.kind === "affiliate" && (
               <p className="mt-3 inline-block rounded-lg bg-cream-300 px-3 py-1.5 text-sm font-semibold text-ink">
                 Actuellement en rupture chez le marchand
               </p>
@@ -211,35 +219,36 @@ export default async function ProductDetailPage({
               </div>
             )}
 
-            {product.affiliateUrl ? (
-              <>
-                <MagneticButton
-                  as="a"
-                  href={clicUrl}
-                  target="_blank"
-                  rel="noopener noreferrer sponsored"
-                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg shadow-lg transition-colors hover:bg-terracotta-700"
-                >
-                  Voir l&apos;offre
-                </MagneticButton>
-                <p className="mt-2 text-xs text-ink-soft">
-                  Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous.
-                </p>
-              </>
+            {action.kind === "out-of-stock" ? (
+              <p className="btn-shine mt-8 inline-block cursor-not-allowed bg-cream-300 px-6 py-4 text-lg text-ink-soft">
+                {action.label}
+              </p>
             ) : (
-              <>
-                <MagneticButton
-                  as="a"
-                  href={clicUrl}
-                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg shadow-lg transition-colors hover:bg-terracotta-700"
-                >
-                  Bientôt disponible
-                </MagneticButton>
-                <p className="mt-2 text-xs text-ink-soft">
-                  Nous n&apos;avons pas encore de revendeur pour ce produit.
-                </p>
-              </>
+              <MagneticButton
+                as="a"
+                href={clicUrl}
+                target={action.kind === "affiliate" ? "_blank" : undefined}
+                rel={action.kind === "affiliate" ? "noopener noreferrer sponsored" : undefined}
+                className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg shadow-lg transition-colors hover:bg-terracotta-700"
+              >
+                {action.label}
+              </MagneticButton>
             )}
+
+            {delivery && (
+              <p className="mt-3 text-sm font-medium text-ink">{delivery.label}</p>
+            )}
+
+            <p className="mt-2 text-xs text-ink-soft">
+              {action.kind === "affiliate" &&
+                "Lien affilié — nous pouvons percevoir une commission sans surcoût pour vous."}
+              {action.kind === "buy" &&
+                "Vendu et expédié par Câlin Kids. Paiement sécurisé, rétractation sous 14 jours."}
+              {action.kind === "out-of-stock" &&
+                "Ce produit revient bientôt — repassez dans quelques jours."}
+              {action.kind === "soon" &&
+                "Nous n'avons pas encore de revendeur pour ce produit."}
+            </p>
 
             {product.sourceUrl && (
               <a

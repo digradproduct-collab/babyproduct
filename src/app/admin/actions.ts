@@ -11,7 +11,12 @@ import { uploadProductImage } from "@/lib/supabase";
 import { sendWeeklyDigest } from "@/lib/email";
 import { getDemoProducts } from "@/lib/demoProducts";
 import { parseFaqText, parseLines, parseTestimonialsText } from "@/lib/productContent";
-import type { Category, ProductStatus, SourcePlatform } from "@/generated/prisma/client";
+import type {
+  Category,
+  Fulfillment,
+  ProductStatus,
+  SourcePlatform,
+} from "@/generated/prisma/client";
 
 async function requireAdmin() {
   const session = await auth();
@@ -39,7 +44,58 @@ const productSchema = z.object({
   promoEndsAt: z.string().optional(),
   feedId: z.string().optional(),
   externalId: z.string().optional(),
+  fulfillment: z.string().optional(),
+  checkoutUrl: z.string().optional(),
+  deliveryMinDays: z.string().optional(),
+  deliveryMaxDays: z.string().optional(),
+  supplierCountry: z.string().optional(),
 });
+
+const FULFILLMENTS: Fulfillment[] = ["AFFILIATE", "OWN_STOCK", "DROPSHIP"];
+
+function toFulfillment(value: string | undefined): Fulfillment {
+  return FULFILLMENTS.includes(value as Fulfillment) ? (value as Fulfillment) : "AFFILIATE";
+}
+
+function toDays(value: string | undefined) {
+  if (!value) return null;
+  const n = Number.parseInt(value, 10);
+  if (Number.isNaN(n) || n < 1 || n > 120) return null;
+  return n;
+}
+
+/**
+ * Champs propres au mode de vente. Les données de vente en propre sont
+ * effacées quand on repasse en affiliation : un lien de paiement orphelin
+ * finirait par ressortir sur la fiche.
+ */
+function fulfillmentData(raw: {
+  fulfillment?: string;
+  checkoutUrl?: string;
+  deliveryMinDays?: string;
+  deliveryMaxDays?: string;
+  supplierCountry?: string;
+}) {
+  const fulfillment = toFulfillment(raw.fulfillment);
+
+  if (fulfillment === "AFFILIATE") {
+    return {
+      fulfillment,
+      checkoutUrl: null,
+      deliveryMinDays: null,
+      deliveryMaxDays: null,
+      supplierCountry: null,
+    };
+  }
+
+  return {
+    fulfillment,
+    checkoutUrl: raw.checkoutUrl?.trim() || null,
+    deliveryMinDays: toDays(raw.deliveryMinDays),
+    deliveryMaxDays: toDays(raw.deliveryMaxDays),
+    supplierCountry: raw.supplierCountry?.trim().toUpperCase().slice(0, 2) || null,
+  };
+}
 
 function toRating(value: string | undefined) {
   if (!value) return null;
@@ -122,6 +178,7 @@ export async function createProduct(formData: FormData) {
       promoEndsAt: toDate(raw.promoEndsAt),
       feedId: raw.feedId || null,
       externalId: raw.externalId?.trim() || null,
+      ...fulfillmentData(raw),
     },
   });
 
@@ -163,6 +220,7 @@ export async function updateProduct(id: string, formData: FormData) {
       promoEndsAt: toDate(raw.promoEndsAt),
       feedId: raw.feedId || null,
       externalId: raw.externalId?.trim() || null,
+      ...fulfillmentData(raw),
     },
   });
 

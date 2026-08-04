@@ -38,6 +38,18 @@ enum SourcePlatform {
   AUTRE
 }
 
+/// Comment la vente est honorée.
+///
+/// Pour le visiteur, OWN_STOCK et DROPSHIP sont le même parcours : il achète
+/// chez nous. La différence est interne — qui expédie, sous quel délai, et
+/// avec quelle responsabilité juridique. Elle ressort publiquement sur un
+/// seul point, mais obligatoire : le délai de livraison annoncé.
+enum Fulfillment {
+  AFFILIATE // lien vers un marchand, on touche une commission
+  OWN_STOCK // acheté d'avance, expédié par nous
+  DROPSHIP // commandé chez le fournisseur à chaque vente
+}
+
 /// Régie d'affiliation fournissant un flux produits (prix, stock, lien tracké).
 enum AffiliateNetwork {
   AWIN
@@ -159,6 +171,24 @@ model Product {
   externalId String?
 
   affiliateUrl String?
+
+  fulfillment Fulfillment @default(AFFILIATE)
+
+  /// Lien de paiement (Stripe Payment Link ou équivalent) pour les produits
+  /// que nous vendons nous-mêmes. Sans lui, un produit en vente propre reste
+  /// annoncé « bientôt disponible » : jamais de bouton d'achat sans caisse.
+  checkoutUrl String?
+
+  /// Délai de livraison annoncé, en jours ouvrés. L'article L216-1 impose
+  /// d'indiquer une date de livraison, et fixe 30 jours par défaut : un
+  /// produit expédié depuis l'Asie doit donc afficher son vrai délai.
+  deliveryMinDays Int?
+  deliveryMaxDays Int?
+
+  /// Code pays du fournisseur (ISO 3166-1 alpha-2, ex. "FR", "CN"). Hors UE,
+  /// nous devenons importateur au sens du GPSR et endossons les obligations
+  /// du fabricant : l'admin le signale au moment du choix.
+  supplierCountry String?
 
   status              ProductStatus @default(SPOTTED)
   viralScore          Int?

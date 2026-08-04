@@ -6,11 +6,13 @@ import { motion } from "motion/react";
 import { CATEGORY_LABELS, CATEGORY_SLUGS } from "@/lib/labels";
 import { Rating } from "@/components/ui/Rating";
 import { publicPrice } from "@/lib/price";
+import { buyAction } from "@/lib/fulfillment";
 import type { Product } from "@/generated/prisma/client";
 
 export function ProductCard({ product }: { product: Product }) {
   const price = publicPrice(product);
-  const priceLabel = price.kind === "tracked" || price.kind === "indicative" ? price.label : null;
+  const priceLabel = price.kind === "stale" || price.kind === "none" ? null : price.label;
+  const action = buyAction(product);
 
   return (
     <motion.div
@@ -64,14 +66,20 @@ export function ProductCard({ product }: { product: Product }) {
           ) : (
             <span />
           )}
-          <a
-            href={`/api/clic/${product.id}?source=${CATEGORY_SLUGS[product.category]}`}
-            target={product.affiliateUrl ? "_blank" : undefined}
-            rel={product.affiliateUrl ? "noopener noreferrer sponsored" : undefined}
-            className="btn-shine bg-terracotta-600 px-4 py-2 text-xs transition-colors hover:bg-terracotta-700"
-          >
-            {product.affiliateUrl ? "Voir l'offre" : "Bientôt dispo"}
-          </a>
+          {action.kind === "out-of-stock" ? (
+            <span className="btn-shine shrink-0 cursor-not-allowed bg-cream-300 px-4 py-2 text-xs text-ink-soft">
+              Rupture
+            </span>
+          ) : (
+            <a
+              href={`/api/clic/${product.id}?source=${CATEGORY_SLUGS[product.category]}`}
+              target={action.kind === "affiliate" ? "_blank" : undefined}
+              rel={action.kind === "affiliate" ? "noopener noreferrer sponsored" : undefined}
+              className="btn-shine shrink-0 bg-terracotta-600 px-4 py-2 text-xs transition-colors hover:bg-terracotta-700"
+            >
+              {action.kind === "soon" ? "Bientôt dispo" : action.label}
+            </a>
+          )}
         </div>
       </div>
     </motion.div>

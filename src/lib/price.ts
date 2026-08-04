@@ -11,6 +11,9 @@
  * - prix saisi à la main : jamais présenté comme ferme, mais comme
  *   indicatif — c'est ce qui permet de l'afficher sans le dater.
  */
+import { isOwnSale } from "@/lib/fulfillment";
+import type { Fulfillment } from "@/generated/prisma/client";
+
 export const PRICE_MAX_AGE_HOURS = 24;
 
 export function isPriceFresh(priceUpdatedAt: Date | null | undefined): boolean {
@@ -36,9 +39,11 @@ export function formatPriceDate(date: Date): string {
 }
 
 export type PublicPrice =
+  /** Notre propre prix de vente : ferme, sans réserve. */
+  | { kind: "firm"; label: string }
   /** Prix synchronisé depuis une régie et encore frais. */
   | { kind: "tracked"; label: string; checkedAt: string }
-  /** Prix saisi manuellement : affiché, mais annoncé comme indicatif. */
+  /** Prix relevé chez un marchand tiers : affiché, mais annoncé comme indicatif. */
   | { kind: "indicative"; label: string }
   /** Prix censé être automatisé mais périmé : on n'affiche plus rien. */
   | { kind: "stale" }
@@ -49,10 +54,18 @@ export function publicPrice(product: {
   currency?: string | null;
   priceUpdatedAt?: Date | null;
   feedId?: string | null;
+  fulfillment?: Fulfillment | null;
 }): PublicPrice {
   if (product.estimatedPriceCents == null) return { kind: "none" };
 
   const label = formatPrice(product.estimatedPriceCents, product.currency ?? "EUR");
+
+  // Vente en propre : c'est nous qui fixons ce prix et qui encaissons. Le
+  // présenter comme « indicatif » serait faux, et la règle de fraîcheur des
+  // flux n'a aucun sens ici.
+  if (product.fulfillment && isOwnSale(product.fulfillment)) {
+    return { kind: "firm", label };
+  }
 
   // Produit non rattaché à un flux : le prix reste une indication éditoriale.
   if (!product.feedId) return { kind: "indicative", label };

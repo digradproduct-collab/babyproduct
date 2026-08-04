@@ -7,12 +7,16 @@ export function StickyBuyBar({
   name,
   priceLabel,
   ctaUrl,
-  hasOffer = true,
+  ctaLabel,
+  isAffiliate = true,
+  disabled = false,
 }: {
   name: string;
   priceLabel: string | null;
   ctaUrl: string;
-  hasOffer?: boolean;
+  ctaLabel: string;
+  isAffiliate?: boolean;
+  disabled?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -38,14 +42,20 @@ export function StickyBuyBar({
               <p className="truncate text-sm font-semibold text-ink">{name}</p>
               {priceLabel && <p className="text-xs text-ink-soft">{priceLabel}</p>}
             </div>
-            <a
-              href={ctaUrl}
-              target={hasOffer ? "_blank" : undefined}
-              rel={hasOffer ? "noopener noreferrer sponsored" : undefined}
-              className="btn-shine shrink-0 bg-terracotta-600 px-5 py-2.5 text-sm hover:bg-terracotta-700"
-            >
-              {hasOffer ? "Voir l'offre" : "Bientôt dispo"}
-            </a>
+            {disabled ? (
+              <span className="btn-shine shrink-0 cursor-not-allowed bg-cream-300 px-5 py-2.5 text-sm text-ink-soft">
+                {ctaLabel}
+              </span>
+            ) : (
+              <a
+                href={ctaUrl}
+                target={isAffiliate ? "_blank" : undefined}
+                rel={isAffiliate ? "noopener noreferrer sponsored" : undefined}
+                className="btn-shine shrink-0 bg-terracotta-600 px-5 py-2.5 text-sm hover:bg-terracotta-700"
+              >
+                {ctaLabel}
+              </a>
+            )}
           </div>
         </motion.div>
       )}

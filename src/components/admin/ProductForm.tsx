@@ -1,5 +1,6 @@
 import { CATEGORY_LABELS, PLATFORM_LABELS } from "@/lib/labels";
 import { ImageField } from "@/components/admin/ImageField";
+import { FulfillmentFields } from "@/components/admin/FulfillmentFields";
 import {
   faqToText,
   isFaqArray,
@@ -149,6 +150,8 @@ export function ProductForm({
         />
       </label>
 
+      <FulfillmentFields product={product} />
+
       <label className="flex flex-col gap-1 text-sm sm:col-span-2">
         Lien d&apos;affiliation
         <input
@@ -157,8 +160,8 @@ export function ProductForm({
           className="rounded-lg border border-cream-500 bg-white px-3 py-2"
         />
         <span className="text-xs text-ink-soft">
-          Écrasé automatiquement par le lien tracké du flux si le produit est rattaché à une
-          régie ci-dessous.
+          Utilisé uniquement en mode affiliation. Écrasé automatiquement par le lien tracké du
+          flux si le produit est rattaché à une régie ci-dessous.
         </span>
       </label>
 

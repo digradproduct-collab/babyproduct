@@ -176,6 +176,36 @@ vers l'offre.
   (`utm_source`), et conversion détaillée par produit × par source (vues, clics, taux de
   conversion), pour savoir précisément quel produit + quelle source fonctionne.
 
+## Modes de vente
+
+Chaque produit se vend d'une des trois façons, réglable sur sa fiche en admin.
+
+| Mode | Qui encaisse | Bouton public | Champs requis |
+|---|---|---|---|
+| `AFFILIATE` | le marchand | « Voir l'offre » | `affiliateUrl` |
+| `OWN_STOCK` | nous | « Acheter » | `checkoutUrl`, délai |
+| `DROPSHIP` | nous | « Acheter » | `checkoutUrl`, délai, pays fournisseur |
+
+- **Dropshipping = méthode de traitement, pas un parcours distinct.** Le client achète
+  chez nous dans les deux cas ; seule change la personne qui expédie. La seule
+  différence visible est le **délai de livraison annoncé**, obligatoire au titre de
+  l'article L216-1 (qui retient 30 jours à défaut d'accord explicite).
+- **Encaissement** : le champ `checkoutUrl` reçoit un lien de paiement externe (Stripe
+  Payment Link ou équivalent). Tant qu'il est vide, la fiche affiche « Bientôt
+  disponible » — jamais de bouton d'achat sans caisse derrière.
+- **Prix ferme** : en vente propre, le prix est le nôtre. Il n'est ni présenté comme
+  indicatif, ni soumis à la règle de fraîcheur des flux de régie.
+- **Rupture** : `inStock = false` désactive le bouton au lieu de le masquer.
+- **Responsabilité d'importateur** : saisir un fournisseur hors Espace économique
+  européen sur une vente en propre déclenche un avertissement dans l'admin — vendre un
+  produit importé hors UE fait de nous l'importateur au sens du GPSR, avec les
+  obligations du fabricant.
+- **Une seule source de vérité** : `buyAction()` dans `src/lib/fulfillment.ts` décide du
+  libellé et de la destination pour la fiche, les cartes et la barre collante.
+
+Tests : `npx tsx scripts/test-fulfillment.ts` (28 cas — boutons, destinations, prix,
+délais, zone EEE).
+
 ## Prix automatiques (flux des régies d'affiliation)
 
 Les prix marchands changent en permanence : un prix affiché comme ferme mais périmé

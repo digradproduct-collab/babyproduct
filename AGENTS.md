@@ -80,6 +80,19 @@ secteur très encadré. Ces règles ont déjà orienté des choix de code.
   **Seuls les champs commerciaux sont écrasés** (prix, devise, stock, lien tracké) —
   le nom, la description et les photos restent éditoriaux, car les libellés de flux
   sont bruts.
+- **Modes de vente** (`src/lib/fulfillment.ts`). Trois modes par produit :
+  `AFFILIATE` (lien marchand, commission), `OWN_STOCK` (acheté et expédié par nous)
+  et `DROPSHIP` (le fournisseur expédie). Pour le visiteur, les deux derniers sont
+  **le même parcours** — il achète chez nous : le dropshipping est une méthode de
+  traitement, pas un troisième tunnel. Une seule fonction, `buyAction()`, décide du
+  bouton pour la fiche, la carte et la barre collante, afin qu'ils ne divergent
+  jamais. Sans lien de paiement, un produit en vente propre reste « bientôt
+  disponible » : jamais de bouton d'achat sans caisse.
+- **Prix ferme vs indicatif** : en vente propre c'est *notre* prix, donc ferme et non
+  soumis à la fraîcheur des flux. Ne pas y appliquer la mention « prix indicatif ».
+- **Délai de livraison affiché** dès qu'on vend en propre — art. L216-1 impose
+  d'annoncer une date, et retient 30 jours à défaut d'accord ; au-delà, l'admin le
+  signale. C'est la seule différence publique entre stock propre et dropshipping.
 - **Photos** : ne jamais reprendre les visuels d'Amazon ou d'un marchand sans droit.
   Les flux de régie fournissent des images destinées aux éditeurs affiliés ; sinon,
   photographier un échantillon acheté au fournisseur.
