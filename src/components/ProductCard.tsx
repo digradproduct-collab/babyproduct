@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { CATEGORY_LABELS, CATEGORY_SLUGS } from "@/lib/labels";
+import { Rating } from "@/components/ui/Rating";
 import { publicPrice } from "@/lib/price";
 import type { Product } from "@/generated/prisma/client";
 
@@ -15,7 +16,7 @@ export function ProductCard({ product }: { product: Product }) {
     <motion.div
       whileHover={{ y: -6 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-cream-300 bg-cream-100 shadow-[0_2px_10px_-4px_rgba(54,42,34,0.08)] transition-shadow duration-300 hover:shadow-[0_20px_40px_-16px_rgba(0,0,0,0.15)]"
+      className="group flex h-full flex-col overflow-hidden rounded-xl bg-cream-100 shadow-[0_1px_2px_rgba(17,24,39,0.06),0_8px_24px_-12px_rgba(17,24,39,0.18)] transition-shadow duration-300 hover:shadow-[0_2px_4px_rgba(17,24,39,0.06),0_24px_48px_-20px_rgba(17,24,39,0.28)]"
     >
       <Link href={`/produits/${product.slug}`} className="block">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream-300">
@@ -32,32 +33,42 @@ export function ProductCard({ product }: { product: Product }) {
               Câlin Kids
             </div>
           )}
-          <span className="absolute left-3 top-3 rounded-full bg-cream-100/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-terracotta-700 backdrop-blur-sm">
+          <span className="absolute left-3 top-3 rounded-md bg-cream-100/95 px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.06em] text-gold-800">
             {CATEGORY_LABELS[product.category]}
           </span>
         </div>
       </Link>
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col p-4">
         <Link href={`/produits/${product.slug}`}>
-          <h3 className="font-display text-lg leading-tight text-ink transition-colors hover:text-terracotta-600">
+          <h3 className="font-display text-base leading-snug text-ink transition-colors group-hover:text-gold-800">
             {product.name}
           </h3>
         </Link>
         {product.description && (
-          <p className="line-clamp-2 text-sm text-ink-soft">{product.description}</p>
+          <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink-soft">
+            {product.description}
+          </p>
         )}
-        <div className="mt-auto flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2 text-sm text-ink-soft">
-            {product.rating != null && (
-              <span className="text-gold-600">★ {product.rating.toFixed(1)}</span>
-            )}
-            {priceLabel && <span>{priceLabel}</span>}
+
+        {product.rating != null && (
+          <div className="mt-3">
+            <Rating value={product.rating} />
           </div>
+        )}
+
+        {/* mt-auto cale la ligne prix + action en bas : les cartes d'une même
+            rangée alignent leur bouton quelle que soit la longueur du titre. */}
+        <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+          {priceLabel ? (
+            <span className="font-display text-lg tabular-nums text-ink">{priceLabel}</span>
+          ) : (
+            <span />
+          )}
           <a
             href={`/api/clic/${product.id}?source=${CATEGORY_SLUGS[product.category]}`}
             target={product.affiliateUrl ? "_blank" : undefined}
             rel={product.affiliateUrl ? "noopener noreferrer sponsored" : undefined}
-            className="btn-shine bg-terracotta-600 px-4 py-2 text-xs text-white transition-colors hover:bg-terracotta-700"
+            className="btn-shine bg-terracotta-600 px-4 py-2 text-xs transition-colors hover:bg-terracotta-700"
           >
             {product.affiliateUrl ? "Voir l'offre" : "Bientôt dispo"}
           </a>

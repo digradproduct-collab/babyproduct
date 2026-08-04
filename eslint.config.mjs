@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Outils tiers installés via `npx skills add` : code vendu, hors de notre
+    // ressort, et absent du build de l'application.
+    ".agents/**",
+    ".claude/**",
   ]),
 ]);
 

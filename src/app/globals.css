@@ -150,9 +150,18 @@ body {
   --color-sage-800: #15803d;
   --color-sage-900: #14532d;
 
+  /*
+    L'or de la maquette (#f3c151) ne contraste qu'à 1.67:1 sur blanc : il
+    tient comme aplat et comme surface, jamais comme couleur de texte ni de
+    petit signe. D'où deux tons dérivés, de même famille, qui franchissent
+    les seuils : gold-700 (3.16:1) pour les signes graphiques comme les
+    étoiles, gold-800 (6.22:1) dès qu'il s'agit de texte lisible.
+  */
   --color-gold-400: #fde68a;
   --color-gold-500: #f3c151;
-  --color-gold-600: #f3c151;
+  --color-gold-600: #e0b040;
+  --color-gold-700: #b8892b;
+  --color-gold-800: #7a5c1c;
 
   --color-berry-400: #d1d5db;
   --color-berry-500: #9ca3af;
@@ -163,8 +172,9 @@ body {
 
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.5rem;
+  /* Le plancher de craft tient les cartes entre 12 et 16 px. */
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1rem;
 
   --font-display: var(--font-figtree);
 }
@@ -178,18 +188,65 @@ body {
   background: none;
   -webkit-background-clip: initial;
   background-clip: initial;
-  color: var(--color-terracotta-700);
+  color: var(--color-gold-800);
   font-style: italic;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
+/*
+  Bouton signature. L'aplat or de la maquette est conservé tel quel ; seule
+  la couleur du libellé change : en blanc il tombait à 1.67:1, illisible sur
+  l'élément le plus important de la page. En encre sombre il atteint 10.6:1
+  sans toucher à l'identité.
+*/
 .theme-shine .btn-shine {
-  border-radius: var(--radius-xl);
-  font-weight: 900;
+  border-radius: var(--radius-lg);
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  color: var(--color-ink);
+}
+
+.theme-shine .btn-shine:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
 }
 
 .theme-shine .texture-grain::after {
   opacity: 0;
+}
+
+/*
+  Thème "Console" — espace interne (/admin).
+  L'admin est un outil, pas une vitrine : l'utilisateur y est en tâche. On
+  garde la teinte chaude de la marque, mais on retire ce qui appartient au
+  registre éditorial — police d'affichage sur des libellés d'interface,
+  rayons très arrondis, accent employé en décoration. Une seule famille
+  typographique, une échelle resserrée, et la couleur réservée aux actions
+  primaires et aux états.
+*/
+.theme-console {
+  --font-display: var(--font-figtree);
+
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+}
+
+.theme-console .font-display {
+  font-family: var(--font-figtree), system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Les chiffres d'un tableau de bord se comparent en colonne : chasse fixe. */
+.theme-console table,
+.theme-console .tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-console :is(a, button, select, input, textarea):focus-visible {
+  outline: 2px solid var(--color-terracotta-600);
+  outline-offset: 2px;
 }

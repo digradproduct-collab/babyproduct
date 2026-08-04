@@ -10,6 +10,8 @@ import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { PromoCountdownBar } from "@/components/PromoCountdownBar";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { Rating } from "@/components/ui/Rating";
+import { CheckIcon, CrossIcon, SparkIcon } from "@/components/ui/Icon";
 import { CATEGORY_LABELS, CATEGORY_SLUGS, PLATFORM_LABELS } from "@/lib/labels";
 import { isFaqArray, isTestimonialArray } from "@/lib/productContent";
 import { publicPrice } from "@/lib/price";
@@ -117,47 +119,44 @@ export default async function ProductDetailPage({
 
           <FadeIn delay={0.1}>
             {featuredTestimonial && (
-              <div className="mb-4 flex items-start gap-3 rounded-2xl bg-cream-200 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-terracotta-200 font-display text-terracotta-800">
-                  {featuredTestimonial.author.charAt(0).toUpperCase()}
+              <figure className="mb-6 rounded-xl bg-cream-200 p-4">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-terracotta-200 text-sm font-bold text-gold-800">
+                    {featuredTestimonial.author.charAt(0).toUpperCase()}
+                  </span>
+                  <div>
+                    <figcaption className="text-sm font-semibold text-ink">
+                      {featuredTestimonial.author}
+                    </figcaption>
+                    <Rating value={featuredTestimonial.rating} count={testimonials.length} />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-ink">{featuredTestimonial.author}</p>
-                  <p className="text-gold-600 text-xs">
-                    {"★".repeat(featuredTestimonial.rating)}
-                    {"☆".repeat(5 - featuredTestimonial.rating)}
-                    <span className="ml-1 text-ink-soft">
-                      Basé sur {testimonials.length} avis
-                    </span>
-                  </p>
-                  <p className="mt-1 text-sm italic text-ink-soft">
-                    &ldquo;{featuredTestimonial.quote}&rdquo;
-                  </p>
-                </div>
-              </div>
+                <blockquote className="mt-3 text-sm leading-relaxed text-ink-soft">
+                  &ldquo;{featuredTestimonial.quote}&rdquo;
+                </blockquote>
+              </figure>
             )}
 
             {product.sourcePlatform && product.sourcePlatform !== "AUTRE" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sage-800">
-                🔥 Vu sur {PLATFORM_LABELS[product.sourcePlatform]}
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-sage-200 px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-[0.06em] text-sage-900">
+                <SparkIcon className="h-3.5 w-3.5" />
+                Vu sur {PLATFORM_LABELS[product.sourcePlatform]}
               </span>
             )}
 
-            <h1 className="mt-3 font-display text-3xl text-ink">{product.name}</h1>
+            <h1 className="mt-4 text-balance font-display text-4xl leading-[1.08] tracking-[-0.03em] text-ink">
+              {product.name}
+            </h1>
 
-            <div className="mt-2 flex items-center gap-3 text-sm text-ink-soft">
-              {displayRating != null && (
-                <span className="flex items-center gap-1 text-gold-600">
-                  {"★".repeat(Math.round(displayRating))}
-                  {"☆".repeat(5 - Math.round(displayRating))}
-                  <span className="text-ink-soft">
-                    {displayRating.toFixed(1)}
-                    {testimonials.length > 0 && ` (${testimonials.length} avis)`}
-                  </span>
-                </span>
-              )}
-              {priceLabel && <span className="font-semibold text-ink">{priceLabel}</span>}
-            </div>
+            {displayRating != null && (
+              <div className="mt-3">
+                <Rating value={displayRating} count={testimonials.length} size="md" />
+              </div>
+            )}
+
+            {priceLabel && (
+              <p className="mt-4 font-display text-3xl tabular-nums text-gold-800">{priceLabel}</p>
+            )}
 
             {price.kind === "tracked" && (
               <p className="mt-1 text-xs text-ink-soft">
@@ -182,25 +181,30 @@ export default async function ProductDetailPage({
               </p>
             )}
 
-            {product.description && <p className="mt-5 text-ink-soft">{product.description}</p>}
+            {product.description && (
+              <p className="mt-6 max-w-[65ch] leading-relaxed text-ink-soft">
+                {product.description}
+              </p>
+            )}
 
             {product.highlights.length > 0 && (
-              <div className="mt-5 flex flex-col gap-1.5">
+              <ul className="mt-6 flex flex-col gap-2">
                 {product.highlights.map((h) => (
-                  <div
+                  <li
                     key={h}
-                    className="rounded-lg bg-cream-200 px-3 py-2 text-sm font-medium text-ink"
+                    className="flex items-start gap-2.5 rounded-lg bg-cream-200 px-3.5 py-2.5 text-sm font-medium leading-snug text-ink"
                   >
+                    <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-gold-800" />
                     {h}
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
 
             {product.tags.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 {product.tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-cream-300 px-3 py-1 text-xs text-ink-soft">
+                  <span key={tag} className="rounded-md bg-cream-300 px-2.5 py-1 text-xs text-ink-soft">
                     #{tag}
                   </span>
                 ))}
@@ -214,7 +218,7 @@ export default async function ProductDetailPage({
                   href={clicUrl}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
-                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg text-white shadow-lg transition-colors hover:bg-terracotta-700"
+                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg shadow-lg transition-colors hover:bg-terracotta-700"
                 >
                   Voir l&apos;offre
                 </MagneticButton>
@@ -227,7 +231,7 @@ export default async function ProductDetailPage({
                 <MagneticButton
                   as="a"
                   href={clicUrl}
-                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg text-white shadow-lg transition-colors hover:bg-terracotta-700"
+                  className="btn-shine mt-8 inline-block bg-terracotta-600 px-6 py-4 text-lg shadow-lg transition-colors hover:bg-terracotta-700"
                 >
                   Bientôt disponible
                 </MagneticButton>
@@ -251,7 +255,7 @@ export default async function ProductDetailPage({
         </div>
 
         {storyBlocks.length > 0 && (
-          <div className="mt-20 flex flex-col gap-16">
+          <div className="mt-24 flex flex-col gap-20">
             {storyBlocks.map((block, i) => (
               <FadeIn key={block.headline}>
                 <StoryBlock
@@ -268,25 +272,37 @@ export default async function ProductDetailPage({
 
         {product.highlights.length >= 2 && (
           <FadeIn>
-            <section className="mt-20 flex flex-col gap-8 lg:flex-row lg:items-center">
-              <h2 className="font-display text-2xl text-terracotta-700 lg:w-1/2">
+            <section className="mt-24 flex flex-col gap-10 lg:flex-row lg:items-center">
+              <h2 className="text-balance font-display text-3xl leading-tight tracking-[-0.02em] text-ink lg:w-2/5">
                 Pourquoi choisir {product.name}
               </h2>
-              <div className="overflow-hidden rounded-2xl border border-cream-300 bg-cream-100 lg:w-1/2">
+              <div className="overflow-hidden rounded-xl bg-cream-200 lg:w-3/5">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="bg-cream-300">
-                      <th className="px-4 py-3 text-ink-soft"></th>
-                      <th className="px-4 py-3 font-display text-terracotta-700">Câlin Kids</th>
-                      <th className="px-4 py-3 text-ink-soft">Version basique</th>
+                      <th className="px-4 py-3 font-medium text-ink-soft">
+                        <span className="sr-only">Critère</span>
+                      </th>
+                      <th className="px-4 py-3 text-center font-display text-gold-800">
+                        Câlin Kids
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium text-ink-soft">
+                        Version basique
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {product.highlights.map((h) => (
                       <tr key={h} className="border-t border-cream-300">
-                        <td className="px-4 py-3 text-ink">{h}</td>
-                        <td className="px-4 py-3 text-center text-sage-600">✓</td>
-                        <td className="px-4 py-3 text-center text-berry-500">✕</td>
+                        <td className="px-4 py-3 leading-snug text-ink">{h}</td>
+                        <td className="px-4 py-3">
+                          <CheckIcon className="mx-auto h-4 w-4 text-sage-800" />
+                          <span className="sr-only">Oui</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <CrossIcon className="mx-auto h-4 w-4 text-cream-600" />
+                          <span className="sr-only">Non</span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -298,15 +314,22 @@ export default async function ProductDetailPage({
 
         {testimonials.length > 0 && (
           <FadeIn>
-            <section className="mt-16">
-              <h2 className="font-display text-xl text-ink">Avis clients</h2>
+            <section className="mt-24">
+              <h2 className="font-display text-2xl tracking-[-0.02em] text-ink">Avis clients</h2>
               <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {testimonials.map((t) => (
-                  <div key={`${t.author}-${t.quote.slice(0, 10)}`} className="rounded-2xl border border-cream-300 bg-cream-100 p-5">
-                    <p className="text-gold-600">{"★".repeat(t.rating)}{"☆".repeat(5 - t.rating)}</p>
-                    <p className="mt-2 text-sm text-ink">&ldquo;{t.quote}&rdquo;</p>
-                    <p className="mt-3 text-xs font-semibold text-ink-soft">{t.author}</p>
-                  </div>
+                  <figure
+                    key={`${t.author}-${t.quote.slice(0, 10)}`}
+                    className="rounded-xl bg-cream-200 p-5"
+                  >
+                    <Rating value={t.rating} />
+                    <blockquote className="mt-3 text-sm leading-relaxed text-ink">
+                      &ldquo;{t.quote}&rdquo;
+                    </blockquote>
+                    <figcaption className="mt-4 text-xs font-semibold text-ink-soft">
+                      {t.author}
+                    </figcaption>
+                  </figure>
                 ))}
               </div>
             </section>
@@ -315,8 +338,8 @@ export default async function ProductDetailPage({
 
         {faq.length > 0 && (
           <FadeIn>
-            <section className="mt-16">
-              <h2 className="font-display text-xl text-ink">Questions fréquentes</h2>
+            <section className="mt-24">
+              <h2 className="font-display text-2xl tracking-[-0.02em] text-ink">Questions fréquentes</h2>
               <div className="mt-6">
                 <FaqAccordion items={faq} />
               </div>
@@ -325,8 +348,8 @@ export default async function ProductDetailPage({
         )}
 
         {alternatives.length > 0 && (
-          <section className="mt-16">
-            <h2 className="font-display text-xl text-ink">Autres pépites {CATEGORY_LABELS[product.category].toLowerCase()}</h2>
+          <section className="mt-24">
+            <h2 className="font-display text-2xl tracking-[-0.02em] text-ink">Autres pépites {CATEGORY_LABELS[product.category].toLowerCase()}</h2>
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
               {alternatives.map((alt, i) => (
                 <FadeIn key={alt.id} delay={Math.min(i * 0.06, 0.2)}>

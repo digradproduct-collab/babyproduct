@@ -25,7 +25,7 @@ export function SiteHeader() {
         </nav>
         <Link
           href="/#newsletter"
-          className="btn-shine bg-terracotta-600 px-4 py-2 text-xs text-white hover:bg-terracotta-700"
+          className="btn-shine bg-terracotta-600 px-4 py-2 text-xs hover:bg-terracotta-700"
         >
           Newsletter
         </Link>

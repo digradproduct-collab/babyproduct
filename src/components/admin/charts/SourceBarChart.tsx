@@ -4,10 +4,12 @@ import { useState } from "react";
 
 type SourceBar = { source: string; views: number; clicks: number; conversionRate: number };
 
-const BAR_HEIGHT = 22;
-const BAR_GAP = 12;
-const LABEL_WIDTH = 140;
-
+/**
+ * Barres en HTML plutôt qu'en SVG : un `viewBox` étiré à la largeur du
+ * conteneur agrandit aussi le texte (un corps 12 rendu à 27 px dans un
+ * tableau de bord large). En CSS, la typographie garde sa taille réelle
+ * quelle que soit la largeur.
+ */
 export function SourceBarChart({ data }: { data: SourceBar[] }) {
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -20,74 +22,50 @@ export function SourceBarChart({ data }: { data: SourceBar[] }) {
   }
 
   const max = Math.max(...data.map((d) => d.conversionRate), 1);
-  const width = 480;
-  const trackWidth = width - LABEL_WIDTH - 50;
-  const height = data.length * (BAR_HEIGHT + BAR_GAP);
+  const detail = hovered ? data.find((d) => d.source === hovered) : null;
 
   return (
     <div>
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full">
-        {data.map((d, i) => {
-          const y = i * (BAR_HEIGHT + BAR_GAP);
-          const barLen = (d.conversionRate / max) * trackWidth;
+      <ul className="flex flex-col gap-2.5">
+        {data.map((d) => {
           const isHovered = hovered === d.source;
-
           return (
-            <g key={d.source}>
-              <text
-                x={0}
-                y={y + BAR_HEIGHT / 2 + 4}
-                fontSize="12"
-                fill="var(--color-ink)"
-                fontWeight={600}
-              >
-                {d.source.length > 16 ? `${d.source.slice(0, 15)}…` : d.source}
-              </text>
-              <rect
-                x={LABEL_WIDTH}
-                y={y}
-                width={trackWidth}
-                height={BAR_HEIGHT}
-                rx={4}
-                fill="var(--color-cream-300)"
-              />
-              <rect
-                x={LABEL_WIDTH}
-                y={y}
-                width={Math.max(barLen, 3)}
-                height={BAR_HEIGHT}
-                rx={4}
-                fill={isHovered ? "var(--color-terracotta-700)" : "var(--color-terracotta-600)"}
-              />
-              <text
-                x={LABEL_WIDTH + Math.max(barLen, 3) + 8}
-                y={y + BAR_HEIGHT / 2 + 4}
-                fontSize="12"
-                fill="var(--color-ink-soft)"
-              >
+            <li
+              key={d.source}
+              className="grid grid-cols-[9rem_1fr_3.5rem] items-center gap-3"
+              onMouseEnter={() => setHovered(d.source)}
+              onMouseLeave={() => setHovered(null)}
+            >
+              <span className="truncate text-sm font-semibold text-ink" title={d.source}>
+                {d.source}
+              </span>
+              <span className="h-5 overflow-hidden rounded bg-cream-300">
+                <span
+                  className={`block h-full rounded transition-colors duration-150 ${
+                    isHovered ? "bg-terracotta-700" : "bg-terracotta-600"
+                  }`}
+                  style={{ width: `${Math.max((d.conversionRate / max) * 100, 1.5)}%` }}
+                />
+              </span>
+              <span className="text-right text-sm tabular-nums text-ink-soft">
                 {d.conversionRate}%
-              </text>
-              <rect
-                x={0}
-                y={y - BAR_GAP / 2}
-                width={width}
-                height={BAR_HEIGHT + BAR_GAP}
-                fill="transparent"
-                onMouseEnter={() => setHovered(d.source)}
-                onMouseLeave={() => setHovered(null)}
-              />
-            </g>
+              </span>
+            </li>
           );
         })}
-      </svg>
-      {hovered && (
-        <div className="mt-2 rounded-lg bg-cream-200 px-3 py-1.5 text-xs text-ink">
-          <strong>{hovered}</strong> —{" "}
-          {data.find((d) => d.source === hovered)?.views} vues,{" "}
-          {data.find((d) => d.source === hovered)?.clicks} clics,{" "}
-          <strong>{data.find((d) => d.source === hovered)?.conversionRate}%</strong> de conversion
-        </div>
-      )}
+      </ul>
+
+      <p className="mt-3 min-h-[1.75rem] text-xs text-ink-soft">
+        {detail ? (
+          <>
+            <strong className="text-ink">{detail.source}</strong> — {detail.views} vues,{" "}
+            {detail.clicks} clics, <strong className="text-ink">{detail.conversionRate}%</strong> de
+            conversion
+          </>
+        ) : (
+          "Survolez une source pour le détail."
+        )}
+      </p>
     </div>
   );
 }

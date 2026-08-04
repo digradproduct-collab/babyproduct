@@ -37,7 +37,7 @@ export function NewsletterForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="btn-shine bg-terracotta-600 px-5 py-2.5 text-sm text-white transition hover:bg-terracotta-700 disabled:opacity-60"
+        className="btn-shine bg-terracotta-600 px-5 py-2.5 text-sm transition hover:bg-terracotta-700 disabled:opacity-60"
       >
         {status === "loading" ? "Envoi..." : "Je m'inscris"}
       </button>
