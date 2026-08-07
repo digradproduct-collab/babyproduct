@@ -206,6 +206,39 @@ Chaque produit se vend d'une des trois façons, réglable sur sa fiche en admin.
 Tests : `npx tsx scripts/test-fulfillment.ts` (28 cas — boutons, destinations, prix,
 délais, zone EEE).
 
+## Traitement des commandes (`/admin/commandes`)
+
+Sans ce circuit, une vente resterait dans le tableau de bord Stripe et la mesure du
+site s'arrêterait au clic.
+
+- **Entrée des commandes** : automatique via le webhook `/api/webhooks/stripe`
+  (événement `checkout.session.completed`), ou saisie à la main. L'écran fonctionne
+  dans les deux cas — inutile d'attendre d'avoir branché Stripe.
+- **File de traitement** : `À commander → Commandée au fournisseur → Expédiée →
+  Livrée`. Les sauts d'étape et les retours en arrière sont refusés côté serveur.
+  En dropshipping, la file « à commander » est le travail quotidien.
+- **Échéance de livraison** : calculée à la commande depuis le délai annoncé sur la
+  fiche, en jours ouvrés. Une commande est signalée à trois jours de l'échéance, puis
+  en retard. Dépasser la date promise n'est pas un simple retard : l'article L216-1
+  ouvre au client un droit à résolution de la vente.
+- **Marge réelle** : le coût effectivement payé au fournisseur se saisit au moment de
+  passer la commande. À défaut, l'estimation de la fiche sert de repli et la marge est
+  affichée comme estimée — une marge constatée et une marge supposée ne se mélangent
+  pas.
+- **Idempotence** : `Order.paymentRef` est unique, donc un webhook rejoué par Stripe
+  ne crée pas de doublon.
+
+Configuration Stripe : renseigner `STRIPE_SECRET_KEY` et `STRIPE_WEBHOOK_SECRET`, puis
+ajouter la métadonnée `productId` sur chaque Payment Link pour rattacher la vente au
+bon produit.
+
+Limite connue : l'attribution par source (`utm_source`) est perdue au passage chez le
+prestataire de paiement. Le clic reste attribué, la commande non — le chiffre
+d'affaires par source demanderait de propager un identifiant jusqu'au paiement.
+
+Tests : `npx tsx scripts/test-orders.ts` (26 cas — échéances en jours ouvrés,
+transitions, marges, et vérification de signature du webhook).
+
 ## Prix automatiques (flux des régies d'affiliation)
 
 Les prix marchands changent en permanence : un prix affiché comme ferme mais périmé

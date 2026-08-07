@@ -90,6 +90,14 @@ secteur très encadré. Ces règles ont déjà orienté des choix de code.
   disponible » : jamais de bouton d'achat sans caisse.
 - **Prix ferme vs indicatif** : en vente propre c'est *notre* prix, donc ferme et non
   soumis à la fraîcheur des flux. Ne pas y appliquer la mention « prix indicatif ».
+- **Commandes** (`src/lib/orders.ts`, `/admin/commandes`). Alimentées par le webhook
+  Stripe ou saisies à la main : l'écran doit rester utilisable sans Stripe. File
+  `À commander → Commandée → Expédiée → Livrée`, sauts et retours refusés côté
+  serveur. L'échéance vient du délai annoncé sur la fiche, comptée en jours ouvrés ;
+  la dépasser ouvre un droit à résolution (art. L216-1), d'où l'alerte à trois jours.
+  Le coût fournisseur réel se saisit au moment de commander : ne jamais présenter une
+  marge estimée comme constatée. `paymentRef` est unique pour absorber les rejeux de
+  webhook.
 - **Délai de livraison affiché** dès qu'on vend en propre — art. L216-1 impose
   d'annoncer une date, et retient 30 jours à défaut d'accord ; au-delà, l'admin le
   signale. C'est la seule différence publique entre stock propre et dropshipping.

@@ -50,6 +50,66 @@ enum Fulfillment {
   DROPSHIP // commandé chez le fournisseur à chaque vente
 }
 
+/// Étapes de traitement d'une commande que nous honorons nous-mêmes.
+///
+/// En dropshipping, l'étape qui compte est PLACED : la commande est payée par
+/// le client mais pas encore passée chez le fournisseur. C'est là que le
+/// travail quotidien se joue, et là que le délai annoncé commence à courir.
+enum OrderStatus {
+  PLACED // payée par le client, à transmettre au fournisseur
+  ORDERED // commandée chez le fournisseur
+  SHIPPED // expédiée, suivi disponible
+  DELIVERED // reçue par le client
+  CANCELLED
+  REFUNDED
+}
+
+/// Commande d'un produit vendu par nous (stock propre ou dropshipping).
+///
+/// Alimentée par le webhook de la caisse quand il est configuré, ou saisie à
+/// la main. Sans ce modèle, le chiffre d'affaires resterait dans le tableau
+/// de bord du prestataire de paiement et la mesure s'arrêterait au clic.
+model Order {
+  id        String      @id @default(cuid())
+  productId String
+  product   Product     @relation(fields: [productId], references: [id])
+  status    OrderStatus @default(PLACED)
+
+  quantity      Int    @default(1)
+  /// Montant réellement encaissé, frais de port inclus.
+  amountCents   Int
+  currency      String @default("EUR")
+  /// Coût réel payé au fournisseur, saisi au moment de la commande : c'est
+  /// lui qui donne la marge vraie, par opposition à `estimatedCostCents`.
+  supplierCostCents Int?
+
+  customerEmail String?
+  /// Identifiant de la session de paiement, pour éviter les doublons quand
+  /// le webhook est renvoyé.
+  paymentRef    String? @unique
+
+  /// Référence de la commande passée chez le fournisseur.
+  supplierOrderRef String?
+  trackingUrl      String?
+
+  /// Date de livraison au plus tard annoncée au client lors de l'achat.
+  /// L'article L216-1 en fait un engagement : la dépasser ouvre droit à
+  /// résolution de la vente.
+  promisedBy DateTime?
+
+  orderedAt   DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([productId])
+}
+
 /// Régie d'affiliation fournissant un flux produits (prix, stock, lien tracké).
 enum AffiliateNetwork {
   AWIN
@@ -205,6 +265,7 @@ model Product {
   metrics   ProductMetricSnapshot[]
   clicks    Click[]
   pageViews PageView[]
+  orders    Order[]
 
   @@index([status])
   @@index([category])
