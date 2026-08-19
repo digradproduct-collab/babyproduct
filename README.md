@@ -206,6 +206,27 @@ Chaque produit se vend d'une des trois façons, réglable sur sa fiche en admin.
 Tests : `npx tsx scripts/test-fulfillment.ts` (28 cas — boutons, destinations, prix,
 délais, zone EEE).
 
+## Déploiement
+
+La commande de build est `npm run vercel-build` : elle applique les migrations, crée
+le compte administrateur, puis construit le site.
+
+Les migrations passent par `scripts/deploy-migrate.mjs` plutôt que directement par
+`prisma migrate deploy`. La raison : une base injoignable — projet Supabase mis en
+pause, mauvaise chaîne de connexion — fait attendre la commande sans fin, et le
+déploiement reste figé jusqu'au délai maximum de la plateforme, sans message
+exploitable. Le site cesse alors de se mettre à jour sans qu'on sache pourquoi.
+
+Le script borne donc chaque étape dans le temps (`MIGRATE_TIMEOUT_MS`, défaut 120 s ;
+`SEED_TIMEOUT_MS`, défaut 60 s) et affiche les pistes de diagnostic en cas d'échec.
+
+Points de vigilance sur Supabase :
+
+- **Session pooler** (port 5432) obligatoire pour les migrations ; le Transaction
+  pooler (port 6543) ne gère pas les verrous consultatifs.
+- **Projet en pause** : sur l'offre gratuite, un projet inactif est suspendu et
+  n'accepte plus de connexion. C'est la cause la plus fréquente d'un déploiement figé.
+
 ## Traitement des commandes (`/admin/commandes`)
 
 Sans ce circuit, une vente resterait dans le tableau de bord Stripe et la mesure du

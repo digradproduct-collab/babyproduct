@@ -150,4 +150,9 @@ catalogue a été volontairement écarté pour cette raison.
 - **Base locale** : `sudo service postgresql start` (elle s'arrête souvent).
   Admin de test : `admin@calinkids.fr` / `calinkids-demo`.
 - **Déploiement** : Vercel suit `main`. Développer sur la branche dédiée, puis
-  fusionner dans `main`.
+  fusionner dans `main`. La commande de build doit être `npm run vercel-build` :
+  elle passe par `scripts/deploy-migrate.mjs`, qui borne les migrations dans le
+  temps. Sans cette borne, une base injoignable fige le déploiement entier sans
+  message. Causes déjà rencontrées : **projet Supabase mis en pause** (offre
+  gratuite, la plus fréquente) et **Transaction pooler** (port 6543) au lieu du
+  **Session pooler** (port 5432), qui seul gère les verrous consultatifs.
